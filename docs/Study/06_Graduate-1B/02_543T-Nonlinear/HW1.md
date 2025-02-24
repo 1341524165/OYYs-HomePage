@@ -5,7 +5,7 @@ title: HW1
 tags:
   - Study
   - Graduate
-  - Nonlinear Optimization Algorithms
+  - Algorithms for Nonlinear Optimization
 ---
 
 ## Problem 1.1.4
