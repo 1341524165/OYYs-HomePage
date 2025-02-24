@@ -204,6 +204,7 @@ It adds the **bound constraints** the $ x $ variable, and allows the solution to
 
 #### Solution
 
+```AMPL
 param n := 10;
 param A := 10;
 
@@ -216,7 +217,7 @@ solve;
 
 display x;
 display Rastrigin;
-
+```
 
 ### 2.b
 
