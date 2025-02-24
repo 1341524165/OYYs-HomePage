@@ -207,7 +207,7 @@ It adds the **bound constraints** the $ x $ variable, and allows the solution to
 param n := 10;
 param A := 10;
 
-var x{i in 1..n} >= -5.12, <= 5.12, default 1.0;
+var x{i in 1..n} default 1.0;
 
 minimize Rastrigin:
     A*n + sum{i in 1..n} (x[i]^2 - A*cos(2*Pi*x[i]));
