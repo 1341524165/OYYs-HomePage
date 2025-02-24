@@ -195,9 +195,9 @@ It adds the **bound constraints** the $ x $ variable, and allows the solution to
 
 |  **Problem**    |    **Solution Time**     |   **Objective Value**   |                **Solution Quality**                    |
 |-----------------|--------------------------|-------------------------|--------------------------------------------------------|
-| `dqrtic.mod`    |15 sec (65 iterations)    | 1.998169937e-14         | Converged ("NORM OF PROJECTED GRADIENT <= PGTO")       |
-| `eigenbls.mod`  |11 sec (1001 iterations)  | 3.529070739e-08         | Max Iteration ("more than maxit iterations")           |
-| `freuroth.mod`  |16 sec (21 iterations)    | 608159.189              | Failed ("ABNORMAL_TERMINATION_IN_LNSRC") |
+| `dqrtic.mod`    |15 sec (65 iterations)    | 1.998169937e-14         | Converged        |
+| `eigenbls.mod`  |11 sec (1001 iterations)  | 3.529070739e-08         | Max Iteration    |
+| `freuroth.mod`  |16 sec (21 iterations)    | 608159.189              | Failed           |
 
 
 ### 2.a
@@ -223,12 +223,12 @@ display Rastrigin;
 #### Solution
 |    **n**    |    **Solution Time**     |   **Objective Value**   |                **Solution Quality**                    |
 |-------------|--------------------------|-------------------------|--------------------------------------------------------|
-|     10      | 5 sec (4 iterations)    | 9.949590571         | Converged       |
+|     10      | 5 sec (4 iterations)    | 9.949590571          | Converged       |
 |     20      | 12 sec (4 iterations)   | 19.89918114          | Converged       |
 |     50      | 8 sec (4 iterations)    | 49.74795285          | Converged       |
 |     100     | 7 sec (4 iterations)    | 99.49590571          | Converged       |
-|    1000     | 8 sec (4 iterations)    | 994.9590571           | Converged       |
-|    10000    | 2 sec (2 iterations)    | 949.590571            | Failed ("ABNORMAL_TERMINATION_IN_LNSRC")   |
+|    1000     | 8 sec (4 iterations)    | 994.9590571          | Converged       |
+|    10000    | 2 sec (2 iterations)    | 949.590571           | Failed          |
 
 It seems that for low dimensions (like n≤100), L-BFGS-B converges quickly but easily getting stuck in local minimum instead of the global minimum.  
 For high dimensions (such as n=1000, n=10000), it either still gets stuck in local minima or is interrupted by memory/time constraints.  
