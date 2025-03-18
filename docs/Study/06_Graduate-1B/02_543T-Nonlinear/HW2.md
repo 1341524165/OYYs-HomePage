@@ -160,7 +160,7 @@ So the dimensions of the least expensive can are:
 
 
 
-## Duality
+## 3. Duality
 
 Prove that the following two problems are dual to each other:
 $$ \min c'x \quad s.t. \quad A'x \geq b $$
@@ -187,7 +187,7 @@ So the dual problem is to maximize $ \mu^Tb $ subject to $ A\mu = c $ and $ \mu 
 The two problems are indeed dual to each other.
 
 
-## Problem 4.2.1 (a) (b) and (d)
+## 4. Problem 4.2.1 (a) (b) and (d)
 
 $$
 \min f(x) = \frac{1}{2} (x_1^2 - x_2^2) - 3x_2 \quad s.t. \quad x_2 = 0
@@ -267,7 +267,7 @@ $$ \lambda^3 = \lambda^2 + c^2 x_2 \approx 2.996 + 1000 \cdot 0.000004 =3 $$
 So after all, we can say that the `method of multipliers` converges **much faster than** the `quadratic penalty method`.
 
 
-## Mathematical modeling for data mining
+## 5. Mathematical modeling for data mining
 
 
 ### AMPL model file
