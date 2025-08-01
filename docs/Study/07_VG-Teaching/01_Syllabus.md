@@ -10,8 +10,6 @@ tags:
 
 # Syllabus
 
----
-
 ## 2D
 
 ### 1.
