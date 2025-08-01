@@ -73,6 +73,8 @@ Unity 编辑器分为多个面板，主要包括下面三个大块：
 - `Hierarchy`：层级管理器，显示当前场景中的所有 GameObject 对象
 - `Inspector`：属性检查器，显示选中对象的详细属性
 
+![Unity UI](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/UI_intro.png)
+
 首先是`Project` 面板，显示项目的文件结构。Unity 项目通常包含以下几个重要文件夹：
 - `Assets`：所有资源的根目录  
 - `Scenes`：存放所有场景文件的文件夹  
@@ -84,16 +86,16 @@ Unity 编辑器分为多个面板，主要包括下面三个大块：
 ---
 
 将我提供的素材包导入 `Q1` 文件夹后，选中 **ship0**，设置如下属性：  
-- `Pixels Per Unit (PPU)` → 48  
-- `Compression` → None（无损压缩）  
-- `Filter Mode` → Point（无过滤器，马赛克风格像素风推荐）  
+- `Pixels Per Unit (PPU)` 每单位像素 → 48  
+- `Compression` 压缩 → None（无损压缩）  
+- `Filter Mode` 过滤模式 → Point（无过滤器，马赛克风格像素风推荐）  
 
 :::tip Sprite
-在 `Texture Type` 属性中，我们会看到 2D 图片的初始类型被设置为 `Sprite (2D and UI)`，这表示该图片将作为 2D 精灵使用。  
+在 `Texture Type` 纹理类型属性中，我们会看到 2D 图片的初始类型被设置为 `Sprite (2D and UI)`，这表示该图片将作为 2D 精灵使用。  
 Sprite 是 2D 游戏中的“精灵对象”，可代表角色、地形、粒子特效等。
 :::
 
-:::info `Sprite 模式`属性
+:::info `Sprite Mode` Sprite模式属性
 - Single：单张图片（角色、物体）
 - Multiple：多张图片（图集，Sprite Atlas）
 - Polygon：使用不规则多边形减少透明像素渲染（高级优化），基本只在工业级游戏中使用
