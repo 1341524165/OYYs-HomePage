@@ -11,8 +11,10 @@ tags:
 # Class 1 - Intro & Movement
 
 <video width="960" height="540" controls>
-  <source src="https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_Intro%26Movement.mp4" type="video/mp4" />
+  <source src="https://cdn.jsdelivr.net/gh/1341524165/Game_Design_Courseware@main/Course_Recordings/01_Intro%26Movement.mp4" type="video/mp4">
+  <track kind="captions" src="https://cdn.jsdelivr.net/gh/1341524165/Game_Design_Courseware@main/Course_Recordings/01_Intro%26Movement_en.vtt" srclang="en" label="English">
 </video>
+
 
 ---
 
