@@ -11,7 +11,7 @@ tags:
 # Class 1 - Intro & Movement
 
 <video width="960" height="540" controls>
-  <source src="https://github.com/1341524165/Game_Design_Courseware/blob/main/Course_Recordings/01_Intro%26Movement.mp4" />
+  <source src="https://pub-25034b877a7f48ba91623467da545f22.r2.dev/01_Intro%26Movement.mp4" />
 </video>
 
 
