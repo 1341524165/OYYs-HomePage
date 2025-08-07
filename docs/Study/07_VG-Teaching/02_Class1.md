@@ -19,6 +19,9 @@ tags:
 
 这节课将手把手指导你从零开始配置 Unity 开发环境，并完成第一个 2D 项目的基础设置与角色移动功能实现。适合**初次接触 Unity** 或希望建立完整开发流程认知的开发者。
 
+素材包下载链接：
+> [https://github.com/1341524165/Game_Design_Courseware](https://github.com/1341524165/Game_Design_Courseware)
+
 ## Class 1 Overview
 
 1. 安装 Unity Hub 与编辑器  
