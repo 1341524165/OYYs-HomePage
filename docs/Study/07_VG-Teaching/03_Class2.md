@@ -10,9 +10,9 @@ tags:
 
 # Class 2 - Physics
 
-<video width="960" height="540" controls>
+<!-- <video width="960" height="540" controls>
   <source src="https://pub-25034b877a7f48ba91623467da545f22.r2.dev/02_Physics.mp4" />
-</video>
+</video> -->
 
 ---
 
@@ -103,6 +103,7 @@ for (int i = 0; i < enemies.Length; i++) {
 ```
 
 > ✅ 用于群体行为、AI 控制、批量删除等场景非常实用
+:::
 
 
 ### 3. 使用物理引擎构建新的控制逻辑
