@@ -21,10 +21,9 @@ tags:
 ## Class 2 Overview
 
 1. 理解 Rigidbody2D 与 Collider2D 的作用
-2. 掌握 AddTorque 与 AddForce 的用法
-3. 实现使用箭头控制飞船旋转、空格推进的控制逻辑
-4. 设置 Polygon Collider 精确贴合精灵形状
-5. 理解物体休眠机制（Sleeping Mode）对物理模拟的影响
+2. 学习 Inspector 面板中 name 和 tag 的使用
+3. 使用物理引擎构建新的控制逻辑
+4. 添加迷宫障碍物与碰撞检测
 
 ---
 
