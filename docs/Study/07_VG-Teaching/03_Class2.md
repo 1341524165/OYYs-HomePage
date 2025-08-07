@@ -10,9 +10,9 @@ tags:
 
 # Class 2 - Physics
 
-<!-- <video width="960" height="540" controls>
+<video width="960" height="540" controls>
   <source src="https://pub-25034b877a7f48ba91623467da545f22.r2.dev/02_Physics.mp4" />
-</video> -->
+</video>
 
 ---
 
