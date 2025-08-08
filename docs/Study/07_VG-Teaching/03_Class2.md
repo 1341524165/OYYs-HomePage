@@ -16,7 +16,7 @@ tags:
 
 ---
 
-本节课将继续构建飞船控制逻辑，从静态移动升级为**基于物理引擎的旋转与推进**控制。  
+本节课将引入物理引擎系统，并重新构建飞船控制逻辑，从静态移动升级为**基于物理引擎的旋转与推进**控制。
 
 ## Class 2 Overview
 
@@ -148,8 +148,11 @@ namespace Q2 {
 
 为了测试飞船的物理碰撞行为，我们需要构建一个简单的迷宫障碍物区域。
 
-1. 拖入障碍物精灵（陨石）到场景中
-2. 为障碍物添加组件：`Polygon Collider 2D` （不需要添加 Rigidbody2D，静态障碍物不应该移动）
+1. 导入素材包中的`2-spaaaaace.png`素材
+2. 设置其`Sprite模式`为 **多个**
+3. 点击`Sprite Editor`，选择`切片`，并设置为`自动`
+4. 拖入精灵列表中的障碍物精灵（陨石）到场景中
+5. 为障碍物添加组件：`Polygon Collider 2D` （不需要添加 Rigidbody2D，静态障碍物不应该移动）
 
 ```csharp title="Assets/Q2/Code/MazeObstacle.cs"
 using UnityEngine;
