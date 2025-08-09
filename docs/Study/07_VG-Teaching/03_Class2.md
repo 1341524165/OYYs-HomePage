@@ -138,7 +138,7 @@ namespace Q2 {
 }
 ```
 
-> *说明：  
+> **说明：**  
 > - `AddTorque`：添加绕 Z 轴旋转的力矩(2D)  
 > - `AddRelativeForce`：添加基于局部坐标系的力（相对于物体当前朝向）  
 > - `Time.deltaTime`：将时间切片化，确保在不同帧率下的表现一致性
