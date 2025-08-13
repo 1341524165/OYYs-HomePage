@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-id: Class1
+id: Class 1
 title: Class 1
 tags:
   - Study

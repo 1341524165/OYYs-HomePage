@@ -1,6 +1,6 @@
 ---
 sidebar_position: 4
-id: Class3
+id: Class 3
 title: Class 3
 tags:
   - Study
@@ -23,7 +23,8 @@ tags:
 
 1. 导入与整理素材，以及Prefab（预制体）概念的引入
 2. 使用动画窗口制作序列帧动画
-
+3. GameController：实例单例与生命周期
+4. 其余控制脚本
 
 ### 1. 导入与整理素材，以及Prefab（预制体）概念的引入
 
