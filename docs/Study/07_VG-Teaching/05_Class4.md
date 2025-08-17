@@ -114,7 +114,7 @@ void Update()
 
 这样我们就得到了一个动态变化的陨石生成间隔。接下来，我们需要在`协程`中使用这个间隔来控制陨石的生成频率。
 
-#### 协程
+#### 3.1 协程
 
 ```csharp
 IEnumerator SpawnAsteroidRoutine()
