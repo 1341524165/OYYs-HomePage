@@ -1,0 +1,68 @@
+.auth-component {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--ifm-navbar-background-color);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-text {
+    color: var(--ifm-color-content);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.auth-button {
+    padding: 6px 16px;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 6px;
+    background: var(--ifm-background-color);
+    color: var(--ifm-color-content);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.auth-button:hover {
+    background: var(--ifm-color-emphasis-100);
+    border-color: var(--ifm-color-emphasis-400);
+}
+
+.login-button {
+    background: var(--ifm-color-primary);
+    color: white;
+    border-color: var(--ifm-color-primary);
+}
+
+.login-button:hover {
+    background: var(--ifm-color-primary-dark);
+    border-color: var(--ifm-color-primary-dark);
+    color: white;
+}
+
+.logout-button {
+    background: var(--ifm-color-danger);
+    color: white;
+    border-color: var(--ifm-color-danger);
+}
+
+.logout-button:hover {
+    background: var(--ifm-color-danger-dark);
+    border-color: var(--ifm-color-danger-dark);
+    color: white;
+}
+
+.auth-loading {
+    padding: 6px 16px;
+    color: var(--ifm-color-content-secondary);
+    font-size: 14px;
+}

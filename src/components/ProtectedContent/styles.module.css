@@ -1,0 +1,50 @@
+.protected-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ifm-color-content-secondary);
+}
+
+.protected-fallback {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.login-prompt {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 32px;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 8px;
+    background: var(--ifm-background-surface-color);
+}
+
+.login-prompt h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: var(--ifm-color-content);
+}
+
+.login-prompt p {
+    margin-bottom: 24px;
+    color: var(--ifm-color-content-secondary);
+}
+
+.login-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    background: var(--ifm-color-primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+    background: var(--ifm-color-primary-dark);
+}
+
+.protected-content {
+    margin-top: 16px;
+}
