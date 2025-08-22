@@ -14,7 +14,7 @@ const DocProtector: React.FC<DocProtectorProps> = ({
     protectedPaths = ['/docs/study/vg-teaching'],
     currentPath
 }) => {
-    const { user, loading, login } = useAuth();
+    const { user, loading, error, login } = useAuth();
 
     // 检查当前路径是否需要保护
     const isProtectedPath = () => {
@@ -31,21 +31,10 @@ const DocProtector: React.FC<DocProtectorProps> = ({
         // URL解码并转换为小写进行比较
         const decodedPath = decodeURIComponent(pathname).toLowerCase();
 
-        // // 调试信息（生产环境可删除）
-        // console.log('DocProtector Debug:', {
-        //     originalPath: pathname,
-        //     decodedPath: decodedPath,
-        //     protectedPaths: protectedPaths
-        // });
-
         const isProtected = protectedPaths.some(path => {
             const normalizedProtectedPath = path.toLowerCase();
-            const matches = decodedPath.startsWith(normalizedProtectedPath);
-            console.log(`Path check: "${decodedPath}" starts with "${normalizedProtectedPath}"? ${matches}`);
-            return matches;
+            return decodedPath.startsWith(normalizedProtectedPath);
         });
-
-        console.log('Final protection result:', isProtected);
         return isProtected;
     };
 
@@ -60,6 +49,33 @@ const DocProtector: React.FC<DocProtectorProps> = ({
             <div className="doc-protector-loading">
                 <div className="loading-spinner"></div>
                 <p>正在验证访问权限...</p>
+            </div>
+        );
+    }
+
+    // 错误状态
+    if (error) {
+        return (
+            <div className="doc-protector-container">
+                <div className="access-denied">
+                    <div className="lock-icon">⚠️</div>
+                    <h2>认证服务暂时不可用</h2>
+                    <p>
+                        {error}
+                    </p>
+                    <div style={{ margin: '25px 0' }}>
+                        <AuthButton
+                            onClick={login}
+                            variant="primary"
+                            size="medium"
+                        >
+                            重试连接
+                        </AuthButton>
+                    </div>
+                    <p className="help-text">
+                        如果问题持续存在，请检查网络连接或稍后重试
+                    </p>
+                </div>
             </div>
         );
     }
