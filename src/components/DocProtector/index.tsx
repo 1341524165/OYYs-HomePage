@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import AuthButton from '../AuthButton';
 import './styles.module.css';
 
 interface DocProtectorProps {
@@ -30,12 +31,12 @@ const DocProtector: React.FC<DocProtectorProps> = ({
         // URL解码并转换为小写进行比较
         const decodedPath = decodeURIComponent(pathname).toLowerCase();
 
-        // 调试信息（生产环境可删除）
-        console.log('DocProtector Debug:', {
-            originalPath: pathname,
-            decodedPath: decodedPath,
-            protectedPaths: protectedPaths
-        });
+        // // 调试信息（生产环境可删除）
+        // console.log('DocProtector Debug:', {
+        //     originalPath: pathname,
+        //     decodedPath: decodedPath,
+        //     protectedPaths: protectedPaths
+        // });
 
         const isProtected = protectedPaths.some(path => {
             const normalizedProtectedPath = path.toLowerCase();
@@ -73,12 +74,15 @@ const DocProtector: React.FC<DocProtectorProps> = ({
                     <p>
                         为了保护学生隐私，当然也是为了限制本博客访问流量..
                     </p>
-                    <button
-                        className="access-button"
-                        onClick={login}
-                    >
-                        请登录访问教学内容
-                    </button>
+                    <div style={{ margin: '25px 0' }}>
+                        <AuthButton
+                            onClick={login}
+                            variant="primary"
+                            size="medium"
+                        >
+                            请登录访问教学内容
+                        </AuthButton>
+                    </div>
                     <p className="help-text">
                         如果您是学生，请联系老师获取访问权限
                     </p>

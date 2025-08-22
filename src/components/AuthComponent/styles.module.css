@@ -29,56 +29,6 @@
     text-shadow: 0 0 8px var(--ifm-color-primary);
 }
 
-.auth-button {
-    padding: 6px 16px;
-    border: 1px solid var(--ifm-color-emphasis-300);
-    border-radius: 6px;
-    background: var(--ifm-background-color);
-    color: var(--ifm-color-content);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.auth-button:hover {
-    background: var(--ifm-color-emphasis-100);
-    border-color: var(--ifm-color-emphasis-400);
-}
-
-.login-button {
-    background: linear-gradient(135deg, var(--ifm-color-primary), var(--ifm-color-primary-dark));
-    color: white;
-    border: 2px solid var(--ifm-color-primary);
-    box-shadow: 0 0 10px rgba(108, 0, 148, 0.4);
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-}
-
-.login-button:hover {
-    background: linear-gradient(135deg, var(--ifm-color-primary-light), var(--ifm-color-primary));
-    border-color: var(--ifm-color-primary-light);
-    color: white;
-    box-shadow: 0 0 20px var(--ifm-color-primary);
-    transform: translateY(-1px);
-}
-
-.logout-button {
-    background: linear-gradient(135deg, var(--ifm-color-reverse), var(--ifm-color-a));
-    color: var(--ifm-color-baw);
-    border: 2px solid var(--ifm-color-reverse);
-    box-shadow: 0 0 10px rgba(120, 247, 222, 0.4);
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-.logout-button:hover {
-    background: linear-gradient(135deg, var(--ifm-color-a), var(--ifm-color-reverse));
-    border-color: var(--ifm-color-a);
-    color: var(--ifm-color-baw);
-    box-shadow: 0 0 20px var(--ifm-color-reverse);
-    transform: translateY(-1px);
-}
-
 .auth-loading {
     padding: 8px 16px;
     color: var(--ifm-color-primary-light);

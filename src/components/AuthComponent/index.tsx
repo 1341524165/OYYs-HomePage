@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import AuthButton from '../AuthButton';
 import './styles.module.css';
 
 const AuthComponent: React.FC = () => {
@@ -16,20 +17,22 @@ const AuthComponent: React.FC = () => {
                     <span className="welcome-text">
                         欢迎, {user.user_metadata?.full_name || user.email}!
                     </span>
-                    <button
-                        className="auth-button logout-button"
+                    <AuthButton
                         onClick={logout}
+                        variant="secondary"
+                        size="small"
                     >
                         登出
-                    </button>
+                    </AuthButton>
                 </div>
             ) : (
-                <button
-                    className="auth-button login-button"
+                <AuthButton
                     onClick={login}
+                    variant="primary"
+                    size="medium"
                 >
                     登录 / 注册
-                </button>
+                </AuthButton>
             )}
         </div>
     );
