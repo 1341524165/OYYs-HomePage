@@ -10,21 +10,42 @@ interface DocProtectorProps {
 
 const DocProtector: React.FC<DocProtectorProps> = ({
     children,
-    protectedPaths = ['/docs/Study/07_VG-Teaching'],
+    protectedPaths = ['/docs/study/vg-teaching'],
     currentPath
 }) => {
     const { user, loading, login } = useAuth();
 
     // 检查当前路径是否需要保护
     const isProtectedPath = () => {
+        let pathname = '';
+
         if (!currentPath && typeof window !== 'undefined') {
-            const pathname = window.location.pathname;
-            return protectedPaths.some(path => pathname.startsWith(path));
+            pathname = window.location.pathname;
+        } else if (currentPath) {
+            pathname = currentPath;
+        } else {
+            return false;
         }
-        if (currentPath) {
-            return protectedPaths.some(path => currentPath.startsWith(path));
-        }
-        return false;
+
+        // URL解码并转换为小写进行比较
+        const decodedPath = decodeURIComponent(pathname).toLowerCase();
+
+        // 调试信息（生产环境可删除）
+        console.log('DocProtector Debug:', {
+            originalPath: pathname,
+            decodedPath: decodedPath,
+            protectedPaths: protectedPaths
+        });
+
+        const isProtected = protectedPaths.some(path => {
+            const normalizedProtectedPath = path.toLowerCase();
+            const matches = decodedPath.startsWith(normalizedProtectedPath);
+            console.log(`Path check: "${decodedPath}" starts with "${normalizedProtectedPath}"? ${matches}`);
+            return matches;
+        });
+
+        console.log('Final protection result:', isProtected);
+        return isProtected;
     };
 
     // 如果不是受保护的路径，直接显示内容
