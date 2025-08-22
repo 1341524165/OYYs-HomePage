@@ -69,21 +69,15 @@ const DocProtector: React.FC<DocProtectorProps> = ({
             <div className="doc-protector-container">
                 <div className="access-denied">
                     <div className="lock-icon">🔒</div>
-                    <h2>VG教学内容需要登录访问</h2>
+                    <h2>Game Design 教学内容需要登录访问</h2>
                     <p>
-                        这是视频游戏开发教学的专属内容，包含：
+                        为了保护学生隐私，当然也是为了限制本博客访问流量..
                     </p>
-                    <ul className="features-list">
-                        <li>🎮 Unity游戏开发教程</li>
-                        <li>📚 完整的课程大纲</li>
-                        <li>💻 实践项目代码</li>
-                        <li>🎯 作业和练习</li>
-                    </ul>
                     <button
                         className="access-button"
                         onClick={login}
                     >
-                        登录访问教学内容
+                        请登录访问教学内容
                     </button>
                     <p className="help-text">
                         如果您是学生，请联系老师获取访问权限

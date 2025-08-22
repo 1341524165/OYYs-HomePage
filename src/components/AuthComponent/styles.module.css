@@ -3,8 +3,17 @@
     align-items: center;
     gap: 12px;
     background: var(--ifm-navbar-background-color);
-    border-radius: 6px;
-    padding: 4px;
+    border: 2px solid var(--ifm-color-primary);
+    border-radius: 12px;
+    padding: 8px 12px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 15px rgba(108, 0, 148, 0.3);
+    transition: all 0.3s ease;
+}
+
+.auth-component:hover {
+    box-shadow: 0 0 25px var(--ifm-color-primary);
+    transform: translateY(-2px);
 }
 
 .user-info {
@@ -14,9 +23,10 @@
 }
 
 .welcome-text {
-    color: var(--ifm-color-content);
+    color: var(--ifm-color-primary-light);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
+    text-shadow: 0 0 8px var(--ifm-color-primary);
 }
 
 .auth-button {
@@ -38,31 +48,53 @@
 }
 
 .login-button {
-    background: var(--ifm-color-primary);
+    background: linear-gradient(135deg, var(--ifm-color-primary), var(--ifm-color-primary-dark));
     color: white;
-    border-color: var(--ifm-color-primary);
+    border: 2px solid var(--ifm-color-primary);
+    box-shadow: 0 0 10px rgba(108, 0, 148, 0.4);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 .login-button:hover {
-    background: var(--ifm-color-primary-dark);
-    border-color: var(--ifm-color-primary-dark);
+    background: linear-gradient(135deg, var(--ifm-color-primary-light), var(--ifm-color-primary));
+    border-color: var(--ifm-color-primary-light);
     color: white;
+    box-shadow: 0 0 20px var(--ifm-color-primary);
+    transform: translateY(-1px);
 }
 
 .logout-button {
-    background: var(--ifm-color-danger);
-    color: white;
-    border-color: var(--ifm-color-danger);
+    background: linear-gradient(135deg, var(--ifm-color-reverse), var(--ifm-color-a));
+    color: var(--ifm-color-baw);
+    border: 2px solid var(--ifm-color-reverse);
+    box-shadow: 0 0 10px rgba(120, 247, 222, 0.4);
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .logout-button:hover {
-    background: var(--ifm-color-danger-dark);
-    border-color: var(--ifm-color-danger-dark);
-    color: white;
+    background: linear-gradient(135deg, var(--ifm-color-a), var(--ifm-color-reverse));
+    border-color: var(--ifm-color-a);
+    color: var(--ifm-color-baw);
+    box-shadow: 0 0 20px var(--ifm-color-reverse);
+    transform: translateY(-1px);
 }
 
 .auth-loading {
-    padding: 6px 16px;
-    color: var(--ifm-color-content-secondary);
+    padding: 8px 16px;
+    color: var(--ifm-color-primary-light);
     font-size: 14px;
+    text-shadow: 0 0 8px var(--ifm-color-primary);
+    animation: loading-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
