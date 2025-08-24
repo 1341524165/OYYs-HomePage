@@ -3,9 +3,9 @@ sidebar_position: 1
 id: Build up a Blog
 title: Build up a Blog
 tags:
-  - Study
-  - Code
-  - Build up a Blog
+    - Study
+    - Code
+    - Build up a Blog
 ---
 
 ## _博客怎么搭起来的呢_

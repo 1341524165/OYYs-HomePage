@@ -4,52 +4,44 @@ import AuthButton from '../AuthButton';
 import './styles.module.css';
 
 const AuthComponent: React.FC = () => {
-    const { user, loading, error, login, logout } = useAuth();
+	const { user, loading, error, login, logout } = useAuth();
 
-    if (loading) {
-        return <div className="auth-loading">加载中...</div>;
-    }
+	if (loading) {
+		return <div className="auth-loading">加载中...</div>;
+	}
 
-    if (error) {
-        return (
-            <div className="auth-error">
-                <AuthButton
-                    onClick={login}
-                    variant="secondary"
-                    size="small"
-                >
-                    重试
-                </AuthButton>
-            </div>
-        );
-    }
+	if (error) {
+		return (
+			<div className="auth-error">
+				<AuthButton onClick={login} variant="secondary" size="small">
+					重试
+				</AuthButton>
+			</div>
+		);
+	}
 
-    return (
-        <div className="auth-component">
-            {user ? (
-                <div className="user-info">
-                    <span className="welcome-text">
-                        欢迎, {user.user_metadata?.full_name || user.email}!
-                    </span>
-                    <AuthButton
-                        onClick={logout}
-                        variant="secondary"
-                        size="small"
-                    >
-                        登出
-                    </AuthButton>
-                </div>
-            ) : (
-                <AuthButton
-                    onClick={login}
-                    variant="primary"
-                    size="medium"
-                >
-                    登录 / 注册
-                </AuthButton>
-            )}
-        </div>
-    );
+	return (
+		<div className="auth-component">
+			{user ? (
+				<div className="user-info">
+					<span className="welcome-text">
+						欢迎, {user.user_metadata?.full_name || user.email}!
+					</span>
+					<AuthButton
+						onClick={logout}
+						variant="secondary"
+						size="small"
+					>
+						登出
+					</AuthButton>
+				</div>
+			) : (
+				<AuthButton onClick={login} variant="primary" size="medium">
+					登录 / 注册
+				</AuthButton>
+			)}
+		</div>
+	);
 };
 
 export default AuthComponent;

@@ -1,30 +1,30 @@
 .color {
-  border-radius: 0.5rem;
-  display: inline-block;
-  vertical-align: middle;
-  width: 2rem;
-  height: 2rem;
+	border-radius: 0.5rem;
+	display: inline-block;
+	vertical-align: middle;
+	width: 2rem;
+	height: 2rem;
 }
 
 .input {
-  border-color: #525860;
-  border-radius: 0.4rem;
-  border-style: solid;
-  border-width: 1px;
-  font-size: var(--ifm-font-size-base);
-  padding: 0.5rem;
+	border-color: #525860;
+	border-radius: 0.4rem;
+	border-style: solid;
+	border-width: 1px;
+	font-size: var(--ifm-font-size-base);
+	padding: 0.5rem;
 }
 
 .colorInput {
-  position: relative;
-  border-color: #525860;
-  border-radius: 0.4rem;
-  border-style: solid;
-  border-width: 1px;
-  height: 2.25rem;
-  top: 7px;
+	position: relative;
+	border-color: #525860;
+	border-radius: 0.4rem;
+	border-style: solid;
+	border-width: 1px;
+	height: 2.25rem;
+	top: 7px;
 }
 
 .colorTable {
-  font-size: small;
+	font-size: small;
 }

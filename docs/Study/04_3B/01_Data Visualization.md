@@ -3,9 +3,9 @@ sidebar_position: 1
 id: D-Visualization
 title: D-Visualization
 tags:
-  - Study
-  - 3B
-  - Data Visualization
+    - Study
+    - 3B
+    - Data Visualization
 ---
 
 ## _数据可视化_

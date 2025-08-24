@@ -1,8 +1,8 @@
 {
-    "label": "Study",
-    "position": 3,
-    "link": {
-        "type": "generated-index",
-        "description": "Notes"
-    }
+	"label": "Study",
+	"position": 3,
+	"link": {
+		"type": "generated-index",
+		"description": "Notes"
+	}
 }

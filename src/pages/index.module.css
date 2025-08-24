@@ -4,34 +4,34 @@
  */
 
 .imgbox {
-  margin-top: 40px;
+	margin-top: 40px;
 }
 
 .hero {
-  background-color: rgba(255, 255, 255, 0) !important;
+	background-color: rgba(255, 255, 255, 0) !important;
 }
 
 .heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+	padding: 4rem 0;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
 }
 
 @media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 0 !important;
-  }
+	.heroBanner {
+		padding: 0 !important;
+	}
 }
 
 .buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .Three {
-  /* z-index: 100; */
-  position: absolute;
-  top: -100px;
+	/* z-index: 100; */
+	position: absolute;
+	top: -100px;
 }

@@ -1,8 +1,8 @@
 {
-    "label": "D-Video",
-    "position": 2,
-    "link": {
-        "type": "generated-index",
-        "description": "数字视频技术"
-    }
+	"label": "D-Video",
+	"position": 2,
+	"link": {
+		"type": "generated-index",
+		"description": "数字视频技术"
+	}
 }

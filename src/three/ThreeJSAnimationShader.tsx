@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import * as THREE from "three";
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 // import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 // import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { EffectComposer, RenderPass } from "postprocessing";
+import { EffectComposer, RenderPass } from 'postprocessing';
 
 // @ts-ignore
-import useThemeContext from "@theme/hooks/useThemeContext";
-import { BufferGeometryUtils } from "./BufferGeometryUtils";
+import useThemeContext from '@theme/hooks/useThemeContext';
+import { BufferGeometryUtils } from './BufferGeometryUtils';
 
 // const CAMERA_FACTOR = 60;
 const CAMERA_FACTOR = 90;
@@ -17,11 +17,11 @@ const DISPLACEMENT_AREA = 1.0;
 const SPHERE_RADIUS = 15;
 
 type SceneState = {
-  renderer: THREE.WebGLRenderer;
-  composer: EffectComposer;
-  camera: THREE.OrthographicCamera;
-  scene: THREE.Scene;
-  meshes: THREE.Mesh[];
+	renderer: THREE.WebGLRenderer;
+	composer: EffectComposer;
+	camera: THREE.OrthographicCamera;
+	scene: THREE.Scene;
+	meshes: THREE.Mesh[];
 };
 
 type AnimationProps = {};
@@ -36,707 +36,734 @@ const black = new THREE.Color(0.0, 0.0, 0.0);
 const white = new THREE.Color(1.0, 1.0, 1.0);
 
 export default function ThreeJSAnimationShader({}: AnimationProps) {
-  const scrollRef = useRef<number>(0);
-
-  useEffect(() => {
-    const listener = () => {
-      if (typeof window !== "undefined")
-        scrollRef.current = window?.scrollY ?? 0;
-    };
-    listener();
-    if (typeof window !== "undefined")
-      window.addEventListener("scroll", listener);
-    return () => {
-      if (typeof window !== "undefined")
-        window.removeEventListener("scroll", listener);
-    };
-  }, [window]);
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const sceneStateRef = useRef<SceneState | null>(null);
-  const clockRef = useRef<THREE.Clock>(new THREE.Clock());
-  const requestRef = useRef<number>(-1);
-
-  const wireframe = true;
-
-  function buildNightGeometry(radius: number, complexity: number) {
-    const vertices: { pos: number[]; norm: number[]; uv: number[] }[] = [];
-
-    const dodecahedron = new THREE.DodecahedronGeometry(radius, complexity);
-
-    for (let i = 0; i < dodecahedron.attributes.position.count; i++) {
-      const x = dodecahedron.attributes.position.array[i * 3];
-      const y = dodecahedron.attributes.position.array[i * 3 + 1];
-      const z = dodecahedron.attributes.position.array[i * 3 + 2];
-      const pos = [x, y, z];
-      const norm = [
-        dodecahedron.attributes.normal.array[i * 3],
-        dodecahedron.attributes.normal.array[i * 3 + 1],
-        dodecahedron.attributes.normal.array[i * 3 + 2],
-      ];
-      const uv = [
-        dodecahedron.attributes.uv.array[i * 2],
-        dodecahedron.attributes.uv.array[i * 2 + 1],
-      ];
-      vertices.push({ pos, norm, uv });
-    }
-
-    const positions: number[] = [];
-    const normals: number[] = [];
-    const uvs: number[] = [];
-    for (const vertex of vertices) {
-      positions.push(...vertex.pos);
-      normals.push(...vertex.norm);
-      uvs.push(...vertex.uv);
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    const positionNumComponents = 3;
-    const normalNumComponents = 3;
-    const uvNumComponents = 2;
-    geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(
-        new Float32Array(positions),
-        positionNumComponents
-      )
-    );
-
-    const merged = BufferGeometryUtils.mergeVertices(geometry);
-    merged.computeVertexNormals();
-    return merged;
-  }
-
-  function buildMainLayers(
-    cyan: THREE.Color,
-    yellow: THREE.Color,
-    blue: THREE.Color,
-    magenta: THREE.Color,
-    red: THREE.Color,
-    grey: THREE.Color
-  ) {
-    const layers: any[] = [];
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.7, 0.9, 0.8),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -0.8, 1),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(0, 0, 1),
-      cos: new THREE.Vector3(0, 1, 1),
-      time_dilation: new THREE.Vector3(0.7, 0.4, 0.5),
-      coef: new THREE.Vector3(0.3, -0.5, 1),
-      constant: new THREE.Vector3(0, -0.4, 0.5),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(1, 0, 1),
-      time_dilation: new THREE.Vector3(0.4, 0.6, 1.1),
-      coef: new THREE.Vector3(0.1, 0.8, 0.5),
-      constant: new THREE.Vector3(0, -0.5, 0.7),
-    });
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(1, 0.9, 1),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -1, -0.7),
-    });
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.9, 0.8, 0.7),
-      coef: new THREE.Vector3(0.5, 0, 0.4),
-      constant: new THREE.Vector3(0, -0.9, 0.3),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(1, 0, 1),
-      time_dilation: new THREE.Vector3(0.4, 0.9, 0.3),
-      coef: new THREE.Vector3(0.3, 1, -0.3),
-      constant: new THREE.Vector3(0.3, -1.1, 0.5),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(1, 0, 0),
-      time_dilation: new THREE.Vector3(0.3, 0.8, 1),
-      coef: new THREE.Vector3(0.3, 1, -0.3),
-      constant: new THREE.Vector3(0, -0.7, 0.5),
-    });
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(1, 1, 1),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -0.9, 0),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.9, 1, 1),
-      coef: new THREE.Vector3(-1, 0, 0),
-      constant: new THREE.Vector3(0, -1, 0.2),
-    });
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(1.1, 1, 1),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -1, -0.2),
-    });
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.7, 1, 1),
-      coef: new THREE.Vector3(0.3, 0, 0.3),
-      constant: new THREE.Vector3(0, -0.8, 0.2),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: red,
-      sin: new THREE.Vector3(1, 0, 1),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.9, 1, 1),
-      coef: new THREE.Vector3(1, 0, 0.9),
-      constant: new THREE.Vector3(0, -1, 0.2),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.7, 0.6, 1),
-      coef: new THREE.Vector3(0.3, 0.3, 0.7),
-      constant: new THREE.Vector3(0, -0.8, -0.3),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.7, 0.6, 1),
-      coef: new THREE.Vector3(-0.4, 0.8, 0.5),
-      constant: new THREE.Vector3(0, -0.8, 0),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(1, 1, 1),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
-      coef: new THREE.Vector3(-0.5, 0.8, 0.3),
-      constant: new THREE.Vector3(0.1, -0.5, 0.7),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.8, 0.7, 0.7),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -1, 1),
-    });
-
-    // layers.push({
-    //     is_active: 1,
-    //     color: blue,
-    //     sin: new THREE.Vector3(1, 0, 1),
-    //     cos: new THREE.Vector3(0, 1, 0),
-    //     time_dilation: new THREE.Vector3(.6, .7, 1),
-    //     coef: new THREE.Vector3(.2, .2, .6),
-    //     constant: new THREE.Vector3(.2, -.7 - .3)
-    // });
-    //
-    // layers.push({
-    //     is_active: 1,
-    //     color: red,
-    //     sin: new THREE.Vector3(0, 0, 1),
-    //     cos: new THREE.Vector3(1, 1, 0),
-    //     time_dilation: new THREE.Vector3(.6, .5, .5),
-    //     coef: new THREE.Vector3(.3, -.5, 1),
-    //     constant: new THREE.Vector3(0, -.5, .4)
-    // });
-    //
-    // layers.push({
-    //     is_active: 1,
-    //     color: yellow,
-    //     sin: new THREE.Vector3(1, 1, 0),
-    //     cos: new THREE.Vector3(0, 0, 1),
-    //     time_dilation: new THREE.Vector3(.9, .9, 1),
-    //     coef: new THREE.Vector3(-.1, -.6, .5),
-    //     constant: new THREE.Vector3(-0.7, -.7, .8)
-    // });
-    //
-    // layers.push({
-    //     is_active: 1,
-    //     color: magenta,
-    //     sin: new THREE.Vector3(0, 0, 0),
-    //     cos: new THREE.Vector3(1, 1, 1),
-    //     time_dilation: new THREE.Vector3(.7, .8, 1),
-    //     coef: new THREE.Vector3(-.45, .85, .55),
-    //     constant: new THREE.Vector3(0, -.85, 0)
-    // });
-    //
-    // layers.push({
-    //     is_active: 1,
-    //     color: blue,
-    //     sin: new THREE.Vector3(0, 1, 1),
-    //     cos: new THREE.Vector3(1, 0, 0),
-    //     time_dilation: new THREE.Vector3(.9, .7, .7),
-    //     coef: new THREE.Vector3(-.4, .9, .4),
-    //     constant: new THREE.Vector3(-.2, -.4, .6)
-    // });
-    return layers;
-  }
-  function buildSmallLayers(
-    cyan: THREE.Color,
-    yellow: THREE.Color,
-    blue: THREE.Color,
-    magenta: THREE.Color,
-    red: THREE.Color,
-    grey: THREE.Color
-  ) {
-    const layers: any[] = [];
-    layers.push({
-      is_active: 0,
-      color: cyan,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.8, 0.7, 0.7),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, 1, -1),
-    });
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 1, 0),
-      time_dilation: new THREE.Vector3(1, 1, 1),
-      coef: new THREE.Vector3(1, 1, 0),
-      constant: new THREE.Vector3(0, -0.9, 0),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(1.1, 1, 1),
-      coef: new THREE.Vector3(1, 0, 0),
-      constant: new THREE.Vector3(0, -1, -0.2),
-    });
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.7, 0.6, 1),
-      coef: new THREE.Vector3(0.3, 0.3, 0.7),
-      constant: new THREE.Vector3(-1.0, -0.8, -0.3),
-    });
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.7, 1, 1),
-      coef: new THREE.Vector3(-0.3, 0, 0.3),
-      constant: new THREE.Vector3(0, -0.8, 0.2),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(1, 0, 0),
-      time_dilation: new THREE.Vector3(0.3, 0.8, 1),
-      coef: new THREE.Vector3(0.3, 1, -0.3),
-      constant: new THREE.Vector3(0, 0.7, -0.5),
-    });
-
-    layers.push({
-      is_active: 0,
-      color: cyan,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.9, 1, 1),
-      coef: new THREE.Vector3(-1, 1, 0),
-      constant: new THREE.Vector3(0, 1, 0.2),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.7, 0.6, 1),
-      coef: new THREE.Vector3(-0.4, 0.8, 0.5),
-      constant: new THREE.Vector3(0, 0.8, 1.0),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(1, 1, 1),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
-      coef: new THREE.Vector3(-0.5, 0.8, 0.3),
-      constant: new THREE.Vector3(0.1, 0.5, -0.7),
-    });
-
-    layers.push({
-      is_active: 0,
-      color: cyan,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.7, 0.9, 0.8),
-      coef: new THREE.Vector3(1, 1, 0),
-      constant: new THREE.Vector3(0, 0.8, 1),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 0, 0),
-      cos: new THREE.Vector3(0, 1, 0),
-      time_dilation: new THREE.Vector3(0.7, 0.9, 1),
-      coef: new THREE.Vector3(-0.3, 1, 0.3),
-      constant: new THREE.Vector3(0, -0.2, 0.3),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.4, 0.8, 1),
-      coef: new THREE.Vector3(0.3, -1, -0.5),
-      constant: new THREE.Vector3(0.2, 0.7, -0.5),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: cyan,
-      sin: new THREE.Vector3(0, 0, 1),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(1, 1, 0.9),
-      coef: new THREE.Vector3(-1, 1, 0.6),
-      constant: new THREE.Vector3(0, -0.3, 0.1),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: blue,
-      sin: new THREE.Vector3(1, 1, 0),
-      cos: new THREE.Vector3(0, 0, 1),
-      time_dilation: new THREE.Vector3(0.9, 0.8, 1),
-      coef: new THREE.Vector3(0.4, -0.8, 0.9),
-      constant: new THREE.Vector3(0.4, 0.8, 1),
-    });
-
-    layers.push({
-      is_active: 1,
-      color: yellow,
-      sin: new THREE.Vector3(1, 1, 1),
-      cos: new THREE.Vector3(0, 0, 0),
-      time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
-      coef: new THREE.Vector3(0.5, -0.7, 0.3),
-      constant: new THREE.Vector3(0.1, -0.5, 0.7),
-    });
-
-    layers.push({
-      is_active: 0,
-      color: cyan,
-      sin: new THREE.Vector3(0, 1, 0),
-      cos: new THREE.Vector3(1, 0, 0),
-      time_dilation: new THREE.Vector3(0.7, 1.0, 0.8),
-      coef: new THREE.Vector3(1, 1, 0),
-      constant: new THREE.Vector3(0.3, 0.8, 0.5),
-    });
-    return layers;
-  }
-
-  function buildMaterial(
-    width: number,
-    height: number,
-    radius: number,
-    displacementRatio: number,
-    displacementArea: number,
-    layers: any[],
-    spread: number
-  ) {
-    const uniforms = {
-      u_time: { value: 0 },
-      u_resolution: { value: new THREE.Vector2(width, height) },
-      bright: { value: BRIGHT },
-      u_sphere_radius: { value: radius },
-      u_displacement_ratio: { value: displacementRatio },
-      u_displacement_area: { value: displacementArea },
-      u_base_color: { value: magenta },
-      u_layers: { value: layers },
-      u_layers_count: { value: layers.length },
-      u_color_spread: { value: spread },
-    };
-
-    const material = new THREE.ShaderMaterial({
-      uniforms: uniforms,
-      vertexShader: buildVertexShader(),
-      fragmentShader: buildFragmentShaderOptimized(),
-    });
-
-    material.wireframe = wireframe;
-    return material;
-  }
-
-  function createShape(
-    width: number,
-    height: number,
-    radius: number,
-    displacementRatio: number,
-    displacementArea: number,
-    positionX,
-    positionY,
-    spread
-  ) {
-    const layers = buildSmallLayers(cyan, yellow, blue, magenta, red, grey);
-    const material = buildMaterial(
-      width,
-      height,
-      radius,
-      displacementRatio,
-      displacementArea,
-      layers,
-      spread
-    );
-    const geometry = buildNightGeometry(radius, radius * 2);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = positionY;
-    mesh.position.x = positionX;
-    return mesh;
-  }
-
-  function initScene(
-    ref: HTMLCanvasElement,
-    width: number,
-    height: number
-  ): SceneState {
-    const renderer = new THREE.WebGLRenderer({
-      // antialias: true,
-      alpha: true,
-      canvas: ref,
-    });
-
-    // if (!isDarkTheme)
-    //     renderer.setClearColor(0xffffff);
-
-    renderer.setSize(width, height);
-    if (typeof window !== "undefined")
-      renderer.setPixelRatio(window?.devicePixelRatio > 1 ? 1.5 : 1);
-
-    const meshes: THREE.Mesh[] = [];
-
-    const scene = new THREE.Scene();
-
-    const layers = buildMainLayers(cyan, yellow, blue, magenta, red, grey);
-    const material = buildMaterial(
-      width,
-      height,
-      SPHERE_RADIUS,
-      DISPLACEMENT_RADIO,
-      DISPLACEMENT_AREA,
-      layers,
-      6.0
-    );
-
-    const geometry = buildNightGeometry(SPHERE_RADIUS, 18);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.rotation.x = 0.2;
-    mesh.rotation.y = 14;
-    scene.add(mesh);
-    meshes.push(mesh);
-
-    const mesh2 = createShape(width, height, 2, 1 / 1.5, 1 / 3, 3, -10, 1.0);
-    // scene.add(mesh2);
-    // meshes.push(mesh2);
-
-    const mesh3 = createShape(width, height, 1.5, 1 / 2, 1 / 2.5, -2, -20, 1.0);
-    // scene.add(mesh3);
-    // meshes.push(mesh3);
-
-    const mesh4 = createShape(width, height, 1.5, 1 / 1.5, 1 / 2, -1, -32, 1.0);
-    // scene.add(mesh4);
-    // meshes.push(mesh4);
-
-    const mesh5 = createShape(
-      width,
-      height,
-      1,
-      1 / 1.5,
-      1 / 2.5,
-      -4.5,
-      -38,
-      1.0
-    );
-    // scene.add(mesh5);
-    // meshes.push(mesh5);
-
-    const mesh6 = createShape(
-      width,
-      height,
-      2.5,
-      1 / 1.5,
-      1 / 2.5,
-      6.5,
-      -50,
-      1.0
-    );
-    // scene.add(mesh6);
-    // meshes.push(mesh6);
-
-    const left = width / -CAMERA_FACTOR;
-    const right = width / CAMERA_FACTOR;
-    const top = height / CAMERA_FACTOR;
-    const bottom = height / -CAMERA_FACTOR;
-    const near = 1;
-    const far = 100;
-    const camera = new THREE.OrthographicCamera(
-      left,
-      right,
-      top,
-      bottom,
-      near,
-      far
-    );
-    camera.position.z = 15;
-
-    const composer = new EffectComposer(renderer);
-    const renderPass = new RenderPass(scene, camera);
-    composer.addPass(renderPass);
-    // const depthOfFieldEffect = new DepthOfFieldEffect(camera, {
-    //     focusDistance: .0,
-    //     focalLength: 1,
-    //     bokehScale: 6
-    // });
-    // composer.addPass(new EffectPass(camera, depthOfFieldEffect));
-
-    return {
-      renderer,
-      composer,
-      camera,
-      scene,
-      meshes,
-    };
-  }
-
-  function updateSceneSize(state: SceneState, width: number, height: number) {
-    state.renderer.setSize(width, height);
-    state.camera.left = width / -CAMERA_FACTOR;
-    state.camera.right = width / CAMERA_FACTOR;
-    state.camera.top = height / CAMERA_FACTOR;
-    state.camera.bottom = height / -CAMERA_FACTOR;
-    state.camera.updateProjectionMatrix();
-  }
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const width = canvasRef.current.offsetWidth,
-      height = canvasRef.current.offsetHeight;
-
-    sceneStateRef.current = initScene(canvasRef.current, width, height);
-
-    const { composer, meshes } = sceneStateRef.current;
-
-    //RENDER LOOP
-    render();
-
-    function render() {
-      meshes.forEach((mesh) => {
-        mesh.material.uniforms.u_time.value =
-          3 * clockRef.current.getElapsedTime() * TIME_DILATION;
-        // mesh.position.x = 8 + scrollRef.current / -28;
-        mesh.position.y = 10 + scrollRef.current / 46;
-        mesh.rotation.x = scrollRef.current / 2000;
-      });
-
-      composer.render();
-      requestRef.current = requestAnimationFrame(render);
-    }
-
-    return () => cancelAnimationFrame(requestRef.current);
-  }, [canvasRef.current, wireframe]);
-
-  useEffect(() => {
-    function handleResize() {
-      if (sceneStateRef.current && canvasRef.current) {
-        const width = window.innerWidth,
-          height = window.innerHeight;
-        canvasRef.current.width = width;
-        updateSceneSize(sceneStateRef.current, width, height);
-      }
-    }
-
-    handleResize();
-
-    if (typeof window !== "undefined")
-      window.addEventListener("resize", handleResize);
-    return () => {
-      if (typeof window !== "undefined")
-        window.removeEventListener("resize", handleResize);
-    };
-  }, [window]);
-
-  return (
-    <canvas
-      style={{
-        height: "100vh",
-        width: "100vw",
-        position: "fixed",
-        top: "0px",
-        zIndex: -10,
-      }}
-      ref={canvasRef}
-    />
-  );
+	const scrollRef = useRef<number>(0);
+
+	useEffect(() => {
+		const listener = () => {
+			if (typeof window !== 'undefined')
+				scrollRef.current = window?.scrollY ?? 0;
+		};
+		listener();
+		if (typeof window !== 'undefined')
+			window.addEventListener('scroll', listener);
+		return () => {
+			if (typeof window !== 'undefined')
+				window.removeEventListener('scroll', listener);
+		};
+	}, [window]);
+
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const sceneStateRef = useRef<SceneState | null>(null);
+	const clockRef = useRef<THREE.Clock>(new THREE.Clock());
+	const requestRef = useRef<number>(-1);
+
+	const wireframe = true;
+
+	function buildNightGeometry(radius: number, complexity: number) {
+		const vertices: { pos: number[]; norm: number[]; uv: number[] }[] = [];
+
+		const dodecahedron = new THREE.DodecahedronGeometry(radius, complexity);
+
+		for (let i = 0; i < dodecahedron.attributes.position.count; i++) {
+			const x = dodecahedron.attributes.position.array[i * 3];
+			const y = dodecahedron.attributes.position.array[i * 3 + 1];
+			const z = dodecahedron.attributes.position.array[i * 3 + 2];
+			const pos = [x, y, z];
+			const norm = [
+				dodecahedron.attributes.normal.array[i * 3],
+				dodecahedron.attributes.normal.array[i * 3 + 1],
+				dodecahedron.attributes.normal.array[i * 3 + 2],
+			];
+			const uv = [
+				dodecahedron.attributes.uv.array[i * 2],
+				dodecahedron.attributes.uv.array[i * 2 + 1],
+			];
+			vertices.push({ pos, norm, uv });
+		}
+
+		const positions: number[] = [];
+		const normals: number[] = [];
+		const uvs: number[] = [];
+		for (const vertex of vertices) {
+			positions.push(...vertex.pos);
+			normals.push(...vertex.norm);
+			uvs.push(...vertex.uv);
+		}
+
+		const geometry = new THREE.BufferGeometry();
+		const positionNumComponents = 3;
+		const normalNumComponents = 3;
+		const uvNumComponents = 2;
+		geometry.setAttribute(
+			'position',
+			new THREE.BufferAttribute(
+				new Float32Array(positions),
+				positionNumComponents
+			)
+		);
+
+		const merged = BufferGeometryUtils.mergeVertices(geometry);
+		merged.computeVertexNormals();
+		return merged;
+	}
+
+	function buildMainLayers(
+		cyan: THREE.Color,
+		yellow: THREE.Color,
+		blue: THREE.Color,
+		magenta: THREE.Color,
+		red: THREE.Color,
+		grey: THREE.Color
+	) {
+		const layers: any[] = [];
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.7, 0.9, 0.8),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -0.8, 1),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(0, 0, 1),
+			cos: new THREE.Vector3(0, 1, 1),
+			time_dilation: new THREE.Vector3(0.7, 0.4, 0.5),
+			coef: new THREE.Vector3(0.3, -0.5, 1),
+			constant: new THREE.Vector3(0, -0.4, 0.5),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(1, 0, 1),
+			time_dilation: new THREE.Vector3(0.4, 0.6, 1.1),
+			coef: new THREE.Vector3(0.1, 0.8, 0.5),
+			constant: new THREE.Vector3(0, -0.5, 0.7),
+		});
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(1, 0.9, 1),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -1, -0.7),
+		});
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.9, 0.8, 0.7),
+			coef: new THREE.Vector3(0.5, 0, 0.4),
+			constant: new THREE.Vector3(0, -0.9, 0.3),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(1, 0, 1),
+			time_dilation: new THREE.Vector3(0.4, 0.9, 0.3),
+			coef: new THREE.Vector3(0.3, 1, -0.3),
+			constant: new THREE.Vector3(0.3, -1.1, 0.5),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(1, 0, 0),
+			time_dilation: new THREE.Vector3(0.3, 0.8, 1),
+			coef: new THREE.Vector3(0.3, 1, -0.3),
+			constant: new THREE.Vector3(0, -0.7, 0.5),
+		});
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(1, 1, 1),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -0.9, 0),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.9, 1, 1),
+			coef: new THREE.Vector3(-1, 0, 0),
+			constant: new THREE.Vector3(0, -1, 0.2),
+		});
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(1.1, 1, 1),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -1, -0.2),
+		});
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.7, 1, 1),
+			coef: new THREE.Vector3(0.3, 0, 0.3),
+			constant: new THREE.Vector3(0, -0.8, 0.2),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: red,
+			sin: new THREE.Vector3(1, 0, 1),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.9, 1, 1),
+			coef: new THREE.Vector3(1, 0, 0.9),
+			constant: new THREE.Vector3(0, -1, 0.2),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.7, 0.6, 1),
+			coef: new THREE.Vector3(0.3, 0.3, 0.7),
+			constant: new THREE.Vector3(0, -0.8, -0.3),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.7, 0.6, 1),
+			coef: new THREE.Vector3(-0.4, 0.8, 0.5),
+			constant: new THREE.Vector3(0, -0.8, 0),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(1, 1, 1),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
+			coef: new THREE.Vector3(-0.5, 0.8, 0.3),
+			constant: new THREE.Vector3(0.1, -0.5, 0.7),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.8, 0.7, 0.7),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -1, 1),
+		});
+
+		// layers.push({
+		//     is_active: 1,
+		//     color: blue,
+		//     sin: new THREE.Vector3(1, 0, 1),
+		//     cos: new THREE.Vector3(0, 1, 0),
+		//     time_dilation: new THREE.Vector3(.6, .7, 1),
+		//     coef: new THREE.Vector3(.2, .2, .6),
+		//     constant: new THREE.Vector3(.2, -.7 - .3)
+		// });
+		//
+		// layers.push({
+		//     is_active: 1,
+		//     color: red,
+		//     sin: new THREE.Vector3(0, 0, 1),
+		//     cos: new THREE.Vector3(1, 1, 0),
+		//     time_dilation: new THREE.Vector3(.6, .5, .5),
+		//     coef: new THREE.Vector3(.3, -.5, 1),
+		//     constant: new THREE.Vector3(0, -.5, .4)
+		// });
+		//
+		// layers.push({
+		//     is_active: 1,
+		//     color: yellow,
+		//     sin: new THREE.Vector3(1, 1, 0),
+		//     cos: new THREE.Vector3(0, 0, 1),
+		//     time_dilation: new THREE.Vector3(.9, .9, 1),
+		//     coef: new THREE.Vector3(-.1, -.6, .5),
+		//     constant: new THREE.Vector3(-0.7, -.7, .8)
+		// });
+		//
+		// layers.push({
+		//     is_active: 1,
+		//     color: magenta,
+		//     sin: new THREE.Vector3(0, 0, 0),
+		//     cos: new THREE.Vector3(1, 1, 1),
+		//     time_dilation: new THREE.Vector3(.7, .8, 1),
+		//     coef: new THREE.Vector3(-.45, .85, .55),
+		//     constant: new THREE.Vector3(0, -.85, 0)
+		// });
+		//
+		// layers.push({
+		//     is_active: 1,
+		//     color: blue,
+		//     sin: new THREE.Vector3(0, 1, 1),
+		//     cos: new THREE.Vector3(1, 0, 0),
+		//     time_dilation: new THREE.Vector3(.9, .7, .7),
+		//     coef: new THREE.Vector3(-.4, .9, .4),
+		//     constant: new THREE.Vector3(-.2, -.4, .6)
+		// });
+		return layers;
+	}
+	function buildSmallLayers(
+		cyan: THREE.Color,
+		yellow: THREE.Color,
+		blue: THREE.Color,
+		magenta: THREE.Color,
+		red: THREE.Color,
+		grey: THREE.Color
+	) {
+		const layers: any[] = [];
+		layers.push({
+			is_active: 0,
+			color: cyan,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.8, 0.7, 0.7),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, 1, -1),
+		});
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 1, 0),
+			time_dilation: new THREE.Vector3(1, 1, 1),
+			coef: new THREE.Vector3(1, 1, 0),
+			constant: new THREE.Vector3(0, -0.9, 0),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(1.1, 1, 1),
+			coef: new THREE.Vector3(1, 0, 0),
+			constant: new THREE.Vector3(0, -1, -0.2),
+		});
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.7, 0.6, 1),
+			coef: new THREE.Vector3(0.3, 0.3, 0.7),
+			constant: new THREE.Vector3(-1.0, -0.8, -0.3),
+		});
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.7, 1, 1),
+			coef: new THREE.Vector3(-0.3, 0, 0.3),
+			constant: new THREE.Vector3(0, -0.8, 0.2),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(1, 0, 0),
+			time_dilation: new THREE.Vector3(0.3, 0.8, 1),
+			coef: new THREE.Vector3(0.3, 1, -0.3),
+			constant: new THREE.Vector3(0, 0.7, -0.5),
+		});
+
+		layers.push({
+			is_active: 0,
+			color: cyan,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.9, 1, 1),
+			coef: new THREE.Vector3(-1, 1, 0),
+			constant: new THREE.Vector3(0, 1, 0.2),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.7, 0.6, 1),
+			coef: new THREE.Vector3(-0.4, 0.8, 0.5),
+			constant: new THREE.Vector3(0, 0.8, 1.0),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(1, 1, 1),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
+			coef: new THREE.Vector3(-0.5, 0.8, 0.3),
+			constant: new THREE.Vector3(0.1, 0.5, -0.7),
+		});
+
+		layers.push({
+			is_active: 0,
+			color: cyan,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.7, 0.9, 0.8),
+			coef: new THREE.Vector3(1, 1, 0),
+			constant: new THREE.Vector3(0, 0.8, 1),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 0, 0),
+			cos: new THREE.Vector3(0, 1, 0),
+			time_dilation: new THREE.Vector3(0.7, 0.9, 1),
+			coef: new THREE.Vector3(-0.3, 1, 0.3),
+			constant: new THREE.Vector3(0, -0.2, 0.3),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.4, 0.8, 1),
+			coef: new THREE.Vector3(0.3, -1, -0.5),
+			constant: new THREE.Vector3(0.2, 0.7, -0.5),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: cyan,
+			sin: new THREE.Vector3(0, 0, 1),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(1, 1, 0.9),
+			coef: new THREE.Vector3(-1, 1, 0.6),
+			constant: new THREE.Vector3(0, -0.3, 0.1),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: blue,
+			sin: new THREE.Vector3(1, 1, 0),
+			cos: new THREE.Vector3(0, 0, 1),
+			time_dilation: new THREE.Vector3(0.9, 0.8, 1),
+			coef: new THREE.Vector3(0.4, -0.8, 0.9),
+			constant: new THREE.Vector3(0.4, 0.8, 1),
+		});
+
+		layers.push({
+			is_active: 1,
+			color: yellow,
+			sin: new THREE.Vector3(1, 1, 1),
+			cos: new THREE.Vector3(0, 0, 0),
+			time_dilation: new THREE.Vector3(0.8, 0.8, 0.8),
+			coef: new THREE.Vector3(0.5, -0.7, 0.3),
+			constant: new THREE.Vector3(0.1, -0.5, 0.7),
+		});
+
+		layers.push({
+			is_active: 0,
+			color: cyan,
+			sin: new THREE.Vector3(0, 1, 0),
+			cos: new THREE.Vector3(1, 0, 0),
+			time_dilation: new THREE.Vector3(0.7, 1.0, 0.8),
+			coef: new THREE.Vector3(1, 1, 0),
+			constant: new THREE.Vector3(0.3, 0.8, 0.5),
+		});
+		return layers;
+	}
+
+	function buildMaterial(
+		width: number,
+		height: number,
+		radius: number,
+		displacementRatio: number,
+		displacementArea: number,
+		layers: any[],
+		spread: number
+	) {
+		const uniforms = {
+			u_time: { value: 0 },
+			u_resolution: { value: new THREE.Vector2(width, height) },
+			bright: { value: BRIGHT },
+			u_sphere_radius: { value: radius },
+			u_displacement_ratio: { value: displacementRatio },
+			u_displacement_area: { value: displacementArea },
+			u_base_color: { value: magenta },
+			u_layers: { value: layers },
+			u_layers_count: { value: layers.length },
+			u_color_spread: { value: spread },
+		};
+
+		const material = new THREE.ShaderMaterial({
+			uniforms: uniforms,
+			vertexShader: buildVertexShader(),
+			fragmentShader: buildFragmentShaderOptimized(),
+		});
+
+		material.wireframe = wireframe;
+		return material;
+	}
+
+	function createShape(
+		width: number,
+		height: number,
+		radius: number,
+		displacementRatio: number,
+		displacementArea: number,
+		positionX,
+		positionY,
+		spread
+	) {
+		const layers = buildSmallLayers(cyan, yellow, blue, magenta, red, grey);
+		const material = buildMaterial(
+			width,
+			height,
+			radius,
+			displacementRatio,
+			displacementArea,
+			layers,
+			spread
+		);
+		const geometry = buildNightGeometry(radius, radius * 2);
+		const mesh = new THREE.Mesh(geometry, material);
+		mesh.position.y = positionY;
+		mesh.position.x = positionX;
+		return mesh;
+	}
+
+	function initScene(
+		ref: HTMLCanvasElement,
+		width: number,
+		height: number
+	): SceneState {
+		const renderer = new THREE.WebGLRenderer({
+			// antialias: true,
+			alpha: true,
+			canvas: ref,
+		});
+
+		// if (!isDarkTheme)
+		//     renderer.setClearColor(0xffffff);
+
+		renderer.setSize(width, height);
+		if (typeof window !== 'undefined')
+			renderer.setPixelRatio(window?.devicePixelRatio > 1 ? 1.5 : 1);
+
+		const meshes: THREE.Mesh[] = [];
+
+		const scene = new THREE.Scene();
+
+		const layers = buildMainLayers(cyan, yellow, blue, magenta, red, grey);
+		const material = buildMaterial(
+			width,
+			height,
+			SPHERE_RADIUS,
+			DISPLACEMENT_RADIO,
+			DISPLACEMENT_AREA,
+			layers,
+			6.0
+		);
+
+		const geometry = buildNightGeometry(SPHERE_RADIUS, 18);
+		const mesh = new THREE.Mesh(geometry, material);
+		mesh.rotation.x = 0.2;
+		mesh.rotation.y = 14;
+		scene.add(mesh);
+		meshes.push(mesh);
+
+		const mesh2 = createShape(
+			width,
+			height,
+			2,
+			1 / 1.5,
+			1 / 3,
+			3,
+			-10,
+			1.0
+		);
+		// scene.add(mesh2);
+		// meshes.push(mesh2);
+
+		const mesh3 = createShape(
+			width,
+			height,
+			1.5,
+			1 / 2,
+			1 / 2.5,
+			-2,
+			-20,
+			1.0
+		);
+		// scene.add(mesh3);
+		// meshes.push(mesh3);
+
+		const mesh4 = createShape(
+			width,
+			height,
+			1.5,
+			1 / 1.5,
+			1 / 2,
+			-1,
+			-32,
+			1.0
+		);
+		// scene.add(mesh4);
+		// meshes.push(mesh4);
+
+		const mesh5 = createShape(
+			width,
+			height,
+			1,
+			1 / 1.5,
+			1 / 2.5,
+			-4.5,
+			-38,
+			1.0
+		);
+		// scene.add(mesh5);
+		// meshes.push(mesh5);
+
+		const mesh6 = createShape(
+			width,
+			height,
+			2.5,
+			1 / 1.5,
+			1 / 2.5,
+			6.5,
+			-50,
+			1.0
+		);
+		// scene.add(mesh6);
+		// meshes.push(mesh6);
+
+		const left = width / -CAMERA_FACTOR;
+		const right = width / CAMERA_FACTOR;
+		const top = height / CAMERA_FACTOR;
+		const bottom = height / -CAMERA_FACTOR;
+		const near = 1;
+		const far = 100;
+		const camera = new THREE.OrthographicCamera(
+			left,
+			right,
+			top,
+			bottom,
+			near,
+			far
+		);
+		camera.position.z = 15;
+
+		const composer = new EffectComposer(renderer);
+		const renderPass = new RenderPass(scene, camera);
+		composer.addPass(renderPass);
+		// const depthOfFieldEffect = new DepthOfFieldEffect(camera, {
+		//     focusDistance: .0,
+		//     focalLength: 1,
+		//     bokehScale: 6
+		// });
+		// composer.addPass(new EffectPass(camera, depthOfFieldEffect));
+
+		return {
+			renderer,
+			composer,
+			camera,
+			scene,
+			meshes,
+		};
+	}
+
+	function updateSceneSize(state: SceneState, width: number, height: number) {
+		state.renderer.setSize(width, height);
+		state.camera.left = width / -CAMERA_FACTOR;
+		state.camera.right = width / CAMERA_FACTOR;
+		state.camera.top = height / CAMERA_FACTOR;
+		state.camera.bottom = height / -CAMERA_FACTOR;
+		state.camera.updateProjectionMatrix();
+	}
+
+	useEffect(() => {
+		if (!canvasRef.current) return;
+
+		const width = canvasRef.current.offsetWidth,
+			height = canvasRef.current.offsetHeight;
+
+		sceneStateRef.current = initScene(canvasRef.current, width, height);
+
+		const { composer, meshes } = sceneStateRef.current;
+
+		//RENDER LOOP
+		render();
+
+		function render() {
+			meshes.forEach(mesh => {
+				mesh.material.uniforms.u_time.value =
+					3 * clockRef.current.getElapsedTime() * TIME_DILATION;
+				// mesh.position.x = 8 + scrollRef.current / -28;
+				mesh.position.y = 10 + scrollRef.current / 46;
+				mesh.rotation.x = scrollRef.current / 2000;
+			});
+
+			composer.render();
+			requestRef.current = requestAnimationFrame(render);
+		}
+
+		return () => cancelAnimationFrame(requestRef.current);
+	}, [canvasRef.current, wireframe]);
+
+	useEffect(() => {
+		function handleResize() {
+			if (sceneStateRef.current && canvasRef.current) {
+				const width = window.innerWidth,
+					height = window.innerHeight;
+				canvasRef.current.width = width;
+				updateSceneSize(sceneStateRef.current, width, height);
+			}
+		}
+
+		handleResize();
+
+		if (typeof window !== 'undefined')
+			window.addEventListener('resize', handleResize);
+		return () => {
+			if (typeof window !== 'undefined')
+				window.removeEventListener('resize', handleResize);
+		};
+	}, [window]);
+
+	return (
+		<canvas
+			style={{
+				height: '100vh',
+				width: '100vw',
+				position: 'fixed',
+				top: '0px',
+				zIndex: -10,
+			}}
+			ref={canvasRef}
+		/>
+	);
 }
 
 function buildVertexShader() {
-  return `
+	return `
     precision highp float;
 
     struct Layer {
@@ -1040,7 +1067,7 @@ function buildVertexShader() {
 }
 
 function buildFragmentShaderOptimized() {
-  return `precision highp float;
+	return `precision highp float;
 uniform float u_time;
 varying float v_displacement_amount;
 varying vec3 v_position;
@@ -1066,7 +1093,7 @@ void main ()
 `;
 }
 function buildFragmentShader() {
-  return `
+	return `
 
 precision highp float;
 

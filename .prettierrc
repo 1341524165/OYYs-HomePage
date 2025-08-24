@@ -1,0 +1,37 @@
+{
+	"semi": true,
+	"trailingComma": "es5",
+	"singleQuote": true,
+	"printWidth": 80,
+	"tabWidth": 4,
+	"useTabs": true,
+	"bracketSpacing": true,
+	"arrowParens": "avoid",
+	"endOfLine": "lf",
+	"overrides": [
+		{
+			"files": "*.md",
+			"options": {
+				"printWidth": 100,
+				"proseWrap": "preserve",
+				"useTabs": true,
+				"tabWidth": 4
+			}
+		},
+		{
+			"files": "*.{js,jsx,ts,tsx}",
+			"options": {
+				"parser": "typescript",
+				"useTabs": true,
+				"tabWidth": 4
+			}
+		},
+		{
+			"files": "*.css",
+			"options": {
+				"useTabs": true,
+				"tabWidth": 4
+			}
+		}
+	]
+}

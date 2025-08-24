@@ -1,8 +1,8 @@
 {
-    "label": "Java",
-    "position": 1,
-    "link": {
-        "type": "generated-index",
-        "description": "Java学习笔记"
-    }
+	"label": "Java",
+	"position": 1,
+	"link": {
+		"type": "generated-index",
+		"description": "Java学习笔记"
+	}
 }

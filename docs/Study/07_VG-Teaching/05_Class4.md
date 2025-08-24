@@ -3,9 +3,9 @@ sidebar_position: 4
 id: Class 4
 title: Class 4
 tags:
-  - Study
-  - Unity
-  - Video Game Teaching
+    - Study
+    - Unity
+    - Video Game Teaching
 ---
 
 # Class 4 - Coroutine & AI
@@ -20,16 +20,15 @@ tags:
 
 ## Class 4 Overview
 
-1. 创建并管理陨石出生点（Spawn Points）  
+1. 创建并管理陨石出生点（Spawn Points）
 2. 随机生成陨石逻辑
-3. 基于协程的动态生成间隔  
-4. 飞船开火逻辑  
-5. 子弹追踪 AI  
-
+3. 基于协程的动态生成间隔
+4. 飞船开火逻辑
+5. 子弹追踪 AI
 
 ### 1. 创建陨石刷新点（Spawn Points）
 
-1. 在场景中创建 9 个空物体，作为陨石出生位置，坐标示例：  
+1. 在场景中创建 9 个空物体，作为陨石出生位置，坐标示例：
 
 {10, 4, 0}, {10, 3, 0}, {10, 2, 0}, {10, 1, 0}, {10, 0, 0}, {10, -1, 0}, {10, -2, 0}, {10, -3, 0}, {10, -4, 0}
 
@@ -37,22 +36,24 @@ tags:
 
 ![Icon](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class4_Icon.png)
 
-
 ### 2. 随机生成陨石逻辑
 
-先来声明公共变量：  
+先来声明公共变量：
+
 ```csharp title="GameController.cs"
 public Transform[] spawnPoints;       // 出生点数组
 public GameObject[] asteroidPrefabs;  // 陨石 Prefab 数组
 ```
 
-> **说明：**  
+> **说明：**
+>
 > - 使用 `Transform` 类型声明出生点这一变量，是因为只需读取其三维坐标。
 
 而后我们需要在 Inspector 中将场景中的 Spawn Points 与陨石 Prefabs 拖入对应的槽位：  
 ![Drag_Assignment](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class4_DragAssignment.png)
 
-接下来是`实例化`对象，即生成陨石：  
+接下来是`实例化`对象，即生成陨石：
+
 ```csharp
 void SpawnAsteroid()
 {
@@ -70,22 +71,22 @@ void SpawnAsteroid()
 
 > **说明：**
 > Instantiate 函数接收的参数包括以下 3/4 个：
+>
 > - prefab：要实例化的对象
 > - position：实例化位置
 > - rotation：实例化旋转（Quaternion）
 > - parent (optional)：实例化后对象的父级
 
 :::note Quaternion
-Quaternion 代表“四元数”，是unity用来表示`旋转`的一个数据结构。具体用法有：  
+Quaternion 代表“四元数”，是unity用来表示`旋转`的一个数据结构。具体用法有：
+
 - `Quaternion.identity` 是 0°，无旋转
 - `Quaternion.Euler(x, y, z)` 用欧拉角来表示绕某个轴旋转
 - `Quaternion.LookRotation(x)` 表示与 x 向量的方向同向
 
-- 旋转插值：
-    - 包括三个函数：.Lerp, .Slerp, .RotateTowards  
-        它们都接收三个参数：`(当前角度，目标角度，旋转速度)`，区别在于转速，因为需要过渡旋转的角度不同，具体的观感也不一样。
-:::
-
+- 旋转插值：- 包括三个函数：.Lerp, .Slerp, .RotateTowards  
+   它们都接收三个参数：`(当前角度，目标角度，旋转速度)`，区别在于转速，因为需要过渡旋转的角度不同，具体的观感也不一样。
+  :::
 
 ### 3. 基于协程的动态生成间隔
 
@@ -104,7 +105,7 @@ void Update()
     timeElapsed += Time.deltaTime;
 
     // 计算当前间隔（线性递减）
-    float decreaseDelayOverTime = maxAsteroidDelay - 
+    float decreaseDelayOverTime = maxAsteroidDelay -
         ((maxAsteroidDelay - minAsteroidDelay) / 30f * timeElapsed);
 
     // 钳制范围
@@ -132,11 +133,10 @@ void Start()
 }
 ```
 
-> ***协程***在 Unity 中的核心是一个特殊的返回类型：`IEnumerator`  
+> **_协程_**在 Unity 中的核心是一个特殊的返回类型：`IEnumerator`  
 > 你可以把它当成 _“可暂停执行的函数”_ -- 普通函数一旦调用，会一口气从头跑到尾。而 IEnumerator 可以在中间 `yield return` 的地方暂停，然后**等到某个条件满足**时再从这里继续往下执行。
 
 > 我们需要使用 `StartCoroutine()` 这个函数来启动 IEnumerator 这个返回类型的协程。
-
 
 :::caution “等到某个条件满足”？
 yield return 实则不止课上讲的，也是我们最常用的等待固定时长这一个用法：
@@ -171,31 +171,33 @@ IEnumerator WaitForPlayerDeath()
 
 yield return StartCoroutine(OtherCoroutine()); // 甚至可以嵌套另一个协程，等到OtherCoroutine()执行完了再继续
 ```
-:::
 
+:::
 
 :::tip 简写
 上面的代码中提到了两种简写：匿名写法和 Lambda 表达式。
 
 1. 匿名写法  
-在 C# 2.0 中引入，`delegate` 是一种类型，可以用来保存**指向方法的引用**  
-简单来说，就是我们可以不用写一个单独的方法名，直接在委托位置**临时声明**一个方法。
+   在 C# 2.0 中引入，`delegate` 是一种类型，可以用来保存**指向方法的引用**  
+   简单来说，就是我们可以不用写一个单独的方法名，直接在委托位置**临时声明**一个方法。
 
 2. Lambda 表达式
-Lambda 表达式是 C# 3.0 中引入的一种更简洁的写法，这一用法与 Java 中相同，可以用来创建匿名方法。它的基本语法是 `(参数) => { 方法体 }`，例如：
+   Lambda 表达式是 C# 3.0 中引入的一种更简洁的写法，这一用法与 Java 中相同，可以用来创建匿名方法。它的基本语法是 `(参数) => { 方法体 }`，例如：
+
 ```csharp
 IEnumerator WaitForPlayerDeath()
 {
     yield return new WaitUntil(() => playerHealth <= 0); // 不需要接收参数，所以是空括号
 }
 ```
+
 :::
 
-
 > P.S. 协程并不是真的传统意义上那种多线程，或者后台线程。他只是一个Unity的主循环外面的，也就是独立在Update函数外面的，一个逻辑。简单来说，他和主循环是交错进行的：
+>
 > - 每一帧里面都会分段，先执行Update，之后会检查协程的代码。在二者都结束之后，Unity 才开始渲染这一帧。这一整套流程，都是在`主线程`，也就是 main thread 里面的。所以我们说 unity 实际还是`单线程`的。
 
-### 4. 飞船开火逻辑  
+### 4. 飞船开火逻辑
 
 飞船开火逻辑的本质还是生成物体（生成子弹），所以他的代码基本与陨石生成逻辑一致。
 
@@ -217,7 +219,6 @@ IEnumerator FiringTimer()
     StartCoroutine(FiringTimer());
 }
 ```
-
 
 ### 5. 子弹追踪 AI
 
@@ -262,6 +263,6 @@ public class Projectile : MonoBehaviour
 ```
 
 > **说明：**
+>
 > - FindObjectsOfType 函数会在场景中找到所有挂载了尖括号内指定组件类型 `T` 的对象，并返回一个包含这些对象的**数组**，数组元素类型为 `T`
 > - FindObjectOfType 函数会在场景中找到**第一个**挂载了尖括号内指定组件类型 `T` 的对象，并返回该对象的引用
-

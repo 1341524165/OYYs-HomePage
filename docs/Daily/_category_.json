@@ -1,8 +1,8 @@
 {
-    "label": "Daily",
-    "position": 2,
-    "link": {
-        "type": "generated-index",
-        "description": "生活点滴"
-    }
+	"label": "Daily",
+	"position": 2,
+	"link": {
+		"type": "generated-index",
+		"description": "生活点滴"
+	}
 }

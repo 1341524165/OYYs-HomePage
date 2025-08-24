@@ -1,421 +1,460 @@
 .doc-protector-container {
-    min-height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background: var(--ifm-hero-background-color);
-    backdrop-filter: blur(20px);
+	min-height: 70vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	background: var(--ifm-hero-background-color);
+	backdrop-filter: blur(20px);
 }
 
 .doc-protector-loading {
-    text-align: center;
-    padding: 60px 20px;
-    background: var(--ifm-hero-background-color);
-    backdrop-filter: blur(70px);
-    border-radius: 20px;
-    border: 3px solid var(--ifm-color-primary);
-    box-shadow: 0 0 30px var(--ifm-color-primary);
+	text-align: center;
+	padding: 60px 20px;
+	background: var(--ifm-hero-background-color);
+	backdrop-filter: blur(70px);
+	border-radius: 20px;
+	border: 3px solid var(--ifm-color-primary);
+	box-shadow: 0 0 30px var(--ifm-color-primary);
 }
 
 .loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid transparent;
-    border-top: 4px solid var(--ifm-color-primary);
-    border-right: 4px solid var(--ifm-color-reverse);
-    border-radius: 50%;
-    animation: rainbow-spin 1.5s linear infinite;
-    margin: 0 auto 20px;
-    box-shadow:
-        0 0 20px var(--ifm-color-primary),
-        0 0 40px var(--ifm-color-reverse),
-        inset 0 0 20px rgba(108, 0, 148, 0.2);
+	width: 60px;
+	height: 60px;
+	border: 4px solid transparent;
+	border-top: 4px solid var(--ifm-color-primary);
+	border-right: 4px solid var(--ifm-color-reverse);
+	border-radius: 50%;
+	animation: rainbow-spin 1.5s linear infinite;
+	margin: 0 auto 20px;
+	box-shadow:
+		0 0 20px var(--ifm-color-primary),
+		0 0 40px var(--ifm-color-reverse),
+		inset 0 0 20px rgba(108, 0, 148, 0.2);
 }
 
 @keyframes rainbow-spin {
-    0% {
-        transform: rotate(0deg);
-        border-top-color: var(--ifm-color-primary);
-        border-right-color: var(--ifm-color-reverse);
-        box-shadow: 0 0 20px var(--ifm-color-primary), 0 0 40px var(--ifm-color-reverse);
-    }
+	0% {
+		transform: rotate(0deg);
+		border-top-color: var(--ifm-color-primary);
+		border-right-color: var(--ifm-color-reverse);
+		box-shadow:
+			0 0 20px var(--ifm-color-primary),
+			0 0 40px var(--ifm-color-reverse);
+	}
 
-    25% {
-        border-top-color: var(--ifm-color-reverse);
-        border-right-color: var(--ifm-color-a);
-        box-shadow: 0 0 20px var(--ifm-color-reverse), 0 0 40px var(--ifm-color-a);
-    }
+	25% {
+		border-top-color: var(--ifm-color-reverse);
+		border-right-color: var(--ifm-color-a);
+		box-shadow:
+			0 0 20px var(--ifm-color-reverse),
+			0 0 40px var(--ifm-color-a);
+	}
 
-    50% {
-        border-top-color: var(--ifm-color-a);
-        border-right-color: var(--ifm-color-primary);
-        box-shadow: 0 0 20px var(--ifm-color-a), 0 0 40px var(--ifm-color-primary);
-    }
+	50% {
+		border-top-color: var(--ifm-color-a);
+		border-right-color: var(--ifm-color-primary);
+		box-shadow:
+			0 0 20px var(--ifm-color-a),
+			0 0 40px var(--ifm-color-primary);
+	}
 
-    75% {
-        border-top-color: var(--ifm-color-primary);
-        border-right-color: var(--ifm-color-reverse);
-        box-shadow: 0 0 20px var(--ifm-color-primary), 0 0 40px var(--ifm-color-reverse);
-    }
+	75% {
+		border-top-color: var(--ifm-color-primary);
+		border-right-color: var(--ifm-color-reverse);
+		box-shadow:
+			0 0 20px var(--ifm-color-primary),
+			0 0 40px var(--ifm-color-reverse);
+	}
 
-    100% {
-        transform: rotate(360deg);
-        border-top-color: var(--ifm-color-primary);
-        border-right-color: var(--ifm-color-reverse);
-        box-shadow: 0 0 20px var(--ifm-color-primary), 0 0 40px var(--ifm-color-reverse);
-    }
+	100% {
+		transform: rotate(360deg);
+		border-top-color: var(--ifm-color-primary);
+		border-right-color: var(--ifm-color-reverse);
+		box-shadow:
+			0 0 20px var(--ifm-color-primary),
+			0 0 40px var(--ifm-color-reverse);
+	}
 }
 
 .doc-protector-loading p {
-    color: var(--ifm-color-primary-light);
-    font-size: 1.2em;
-    font-weight: 600;
-    text-shadow: 0 0 10px var(--ifm-color-primary);
+	color: var(--ifm-color-primary-light);
+	font-size: 1.2em;
+	font-weight: 600;
+	text-shadow: 0 0 10px var(--ifm-color-primary);
 }
 
 /* 主访问限制卡片 */
 .access-denied {
-    max-width: 600px;
-    text-align: center;
-    padding: 50px 40px;
-    border: 3px solid var(--ifm-color-primary);
-    border-radius: 20px;
-    background: var(--ifm-botton1-background-color);
-    backdrop-filter: blur(70px);
-    box-shadow:
-        0 0 30px var(--ifm-color-primary),
-        0 0 60px var(--ifm-color-reverse),
-        0 0 100px rgba(108, 0, 148, 0.3),
-        inset 0 0 30px rgba(108, 0, 148, 0.1);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.6s ease-in-out;
+	max-width: 600px;
+	text-align: center;
+	padding: 50px 40px;
+	border: 3px solid var(--ifm-color-primary);
+	border-radius: 20px;
+	background: var(--ifm-botton1-background-color);
+	backdrop-filter: blur(70px);
+	box-shadow:
+		0 0 30px var(--ifm-color-primary),
+		0 0 60px var(--ifm-color-reverse),
+		0 0 100px rgba(108, 0, 148, 0.3),
+		inset 0 0 30px rgba(108, 0, 148, 0.1);
+	position: relative;
+	overflow: hidden;
+	transition: all 0.6s ease-in-out;
 }
 
 /* 动态边框效果 */
 .access-denied::before {
-    content: "";
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    right: -3px;
-    bottom: -3px;
-    background: linear-gradient(45deg,
-            var(--ifm-color-primary),
-            var(--ifm-color-reverse),
-            var(--ifm-color-a),
-            var(--ifm-color-primary));
-    background-size: 400% 400%;
-    border-radius: 20px;
-    z-index: -1;
-    animation: gradient-shift 4s ease infinite;
-    opacity: 0.8;
+	content: '';
+	position: absolute;
+	top: -3px;
+	left: -3px;
+	right: -3px;
+	bottom: -3px;
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary),
+		var(--ifm-color-reverse),
+		var(--ifm-color-a),
+		var(--ifm-color-primary)
+	);
+	background-size: 400% 400%;
+	border-radius: 20px;
+	z-index: -1;
+	animation: gradient-shift 4s ease infinite;
+	opacity: 0.8;
 }
 
 @keyframes gradient-shift {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
 
-    0%,
-    100% {
-        background-position: 0% 50%;
-    }
+	25% {
+		background-position: 100% 50%;
+	}
 
-    25% {
-        background-position: 100% 50%;
-    }
+	50% {
+		background-position: 100% 100%;
+	}
 
-    50% {
-        background-position: 100% 100%;
-    }
-
-    75% {
-        background-position: 0% 100%;
-    }
+	75% {
+		background-position: 0% 100%;
+	}
 }
 
 .access-denied:hover {
-    transform: translateY(-8px);
-    box-shadow:
-        0 0 40px var(--ifm-color-primary),
-        0 0 80px var(--ifm-color-reverse),
-        0 0 120px rgba(108, 0, 148, 0.4),
-        0 15px 40px rgba(0, 0, 0, 0.4),
-        inset 0 0 40px rgba(108, 0, 148, 0.15);
+	transform: translateY(-8px);
+	box-shadow:
+		0 0 40px var(--ifm-color-primary),
+		0 0 80px var(--ifm-color-reverse),
+		0 0 120px rgba(108, 0, 148, 0.4),
+		0 15px 40px rgba(0, 0, 0, 0.4),
+		inset 0 0 40px rgba(108, 0, 148, 0.15);
 }
 
 /* 锁图标 */
 .lock-icon {
-    font-size: 72px;
-    margin-bottom: 30px;
-    animation: lock-pulse 2s ease-in-out infinite;
-    text-shadow: 0 0 20px var(--ifm-color-primary);
-    filter: drop-shadow(0 0 10px var(--ifm-color-reverse));
+	font-size: 72px;
+	margin-bottom: 30px;
+	animation: lock-pulse 2s ease-in-out infinite;
+	text-shadow: 0 0 20px var(--ifm-color-primary);
+	filter: drop-shadow(0 0 10px var(--ifm-color-reverse));
 }
 
 @keyframes lock-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		text-shadow: 0 0 20px var(--ifm-color-primary);
+	}
 
-    0%,
-    100% {
-        transform: scale(1);
-        text-shadow: 0 0 20px var(--ifm-color-primary);
-    }
-
-    50% {
-        transform: scale(1.1);
-        text-shadow: 0 0 30px var(--ifm-color-reverse);
-    }
+	50% {
+		transform: scale(1.1);
+		text-shadow: 0 0 30px var(--ifm-color-reverse);
+	}
 }
 
 /* 标题样式 */
 .access-denied h2 {
-    color: var(--ifm-color-primary-light);
-    margin-bottom: 20px;
-    font-size: 2.2em;
-    font-weight: 700;
-    text-shadow: 0 0 15px var(--ifm-color-primary);
-    background: linear-gradient(45deg, var(--ifm-color-primary), var(--ifm-color-reverse));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: title-glow 3s ease-in-out infinite;
+	color: var(--ifm-color-primary-light);
+	margin-bottom: 20px;
+	font-size: 2.2em;
+	font-weight: 700;
+	text-shadow: 0 0 15px var(--ifm-color-primary);
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary),
+		var(--ifm-color-reverse)
+	);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: title-glow 3s ease-in-out infinite;
 }
 
 @keyframes title-glow {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 10px var(--ifm-color-primary));
+	}
 
-    0%,
-    100% {
-        filter: drop-shadow(0 0 10px var(--ifm-color-primary));
-    }
-
-    50% {
-        filter: drop-shadow(0 0 20px var(--ifm-color-reverse));
-    }
+	50% {
+		filter: drop-shadow(0 0 20px var(--ifm-color-reverse));
+	}
 }
 
 /* 描述文字 */
 .access-denied p {
-    color: var(--ifm-color-primary-light);
-    margin-bottom: 25px;
-    line-height: 1.8;
-    font-size: 1.1em;
-    font-weight: 500;
-    text-shadow: 0 0 5px rgba(108, 0, 148, 0.5);
+	color: var(--ifm-color-primary-light);
+	margin-bottom: 25px;
+	line-height: 1.8;
+	font-size: 1.1em;
+	font-weight: 500;
+	text-shadow: 0 0 5px rgba(108, 0, 148, 0.5);
 }
 
 /* 现代游戏风格按钮 */
 .access-button {
-    position: relative;
-    padding: 16px 32px;
-    font-size: 16px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: white;
-    background: linear-gradient(45deg, var(--ifm-color-primary), var(--ifm-color-primary-dark));
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
-    margin: 25px 0;
-    text-decoration: none;
-    display: inline-block;
+	position: relative;
+	padding: 16px 32px;
+	font-size: 16px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	color: white;
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary),
+		var(--ifm-color-primary-dark)
+	);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	overflow: hidden;
+	transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+	margin: 25px 0;
+	text-decoration: none;
+	display: inline-block;
 
-    /* 初始发光效果 */
-    box-shadow:
-        0 0 20px rgba(108, 0, 148, 0.4),
-        0 0 40px rgba(108, 0, 148, 0.2),
-        0 4px 15px rgba(0, 0, 0, 0.2);
+	/* 初始发光效果 */
+	box-shadow:
+		0 0 20px rgba(108, 0, 148, 0.4),
+		0 0 40px rgba(108, 0, 148, 0.2),
+		0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* 动态发光边框 */
 .access-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, var(--ifm-color-primary), var(--ifm-color-reverse), var(--ifm-color-a), var(--ifm-color-primary));
-    background-size: 400% 400%;
-    border-radius: 12px;
-    padding: 2px;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
-    animation: border-flow 3s ease-in-out infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary),
+		var(--ifm-color-reverse),
+		var(--ifm-color-a),
+		var(--ifm-color-primary)
+	);
+	background-size: 400% 400%;
+	border-radius: 12px;
+	padding: 2px;
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+	-webkit-mask-composite: xor;
+	animation: border-flow 3s ease-in-out infinite;
+	opacity: 0;
+	transition: opacity 0.3s ease;
 }
 
 .access-button:hover::before {
-    opacity: 1;
+	opacity: 1;
 }
 
 @keyframes border-flow {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
 
-    0%,
-    100% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
+	50% {
+		background-position: 100% 50%;
+	}
 }
 
 /* 悬停效果 */
 .access-button:hover {
-    background: linear-gradient(45deg, var(--ifm-color-primary-light), var(--ifm-color-reverse));
-    transform: translateY(-4px) scale(1.02);
-    box-shadow:
-        0 0 30px rgba(108, 0, 148, 0.6),
-        0 0 60px rgba(120, 247, 222, 0.3),
-        0 8px 25px rgba(0, 0, 0, 0.3);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary-light),
+		var(--ifm-color-reverse)
+	);
+	transform: translateY(-4px) scale(1.02);
+	box-shadow:
+		0 0 30px rgba(108, 0, 148, 0.6),
+		0 0 60px rgba(120, 247, 222, 0.3),
+		0 8px 25px rgba(0, 0, 0, 0.3);
+	text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
 }
 
 /* 点击效果 */
 .access-button:active {
-    transform: translateY(-2px) scale(0.98);
-    box-shadow:
-        0 0 20px rgba(108, 0, 148, 0.8),
-        0 0 40px rgba(120, 247, 222, 0.4),
-        0 4px 15px rgba(0, 0, 0, 0.4);
+	transform: translateY(-2px) scale(0.98);
+	box-shadow:
+		0 0 20px rgba(108, 0, 148, 0.8),
+		0 0 40px rgba(120, 247, 222, 0.4),
+		0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* 脉冲动画 */
 .access-button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(circle, rgba(120, 247, 222, 0.4) 0%, transparent 70%);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 0.6s ease;
-    pointer-events: none;
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	background: radial-gradient(
+		circle,
+		rgba(120, 247, 222, 0.4) 0%,
+		transparent 70%
+	);
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	transition: all 0.6s ease;
+	pointer-events: none;
 }
 
 .access-button:hover::after {
-    width: 200px;
-    height: 200px;
+	width: 200px;
+	height: 200px;
 }
-
 
 /* 帮助文字 */
 .help-text {
-    font-size: 0.9em;
-    color: var(--ifm-color-a);
-    margin-top: 20px;
-    font-style: italic;
-    opacity: 0.8;
-    text-shadow: 0 0 5px rgba(251, 126, 176, 0.3);
+	font-size: 0.9em;
+	color: var(--ifm-color-a);
+	margin-top: 20px;
+	font-style: italic;
+	opacity: 0.8;
+	text-shadow: 0 0 5px rgba(251, 126, 176, 0.3);
 }
 
 /* 已登录用户状态 */
 .doc-protector-content {
-    position: relative;
+	position: relative;
 }
 
 .user-badge {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: linear-gradient(135deg, var(--ifm-botton1-background-color), rgba(42, 45, 92, 0.9));
-    border: 2px solid var(--ifm-color-primary);
-    border-radius: 12px;
-    padding: 12px 20px;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    backdrop-filter: blur(20px);
-    box-shadow:
-        0 0 20px var(--ifm-color-primary),
-        0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: linear-gradient(
+		135deg,
+		var(--ifm-botton1-background-color),
+		rgba(42, 45, 92, 0.9)
+	);
+	border: 2px solid var(--ifm-color-primary);
+	border-radius: 12px;
+	padding: 12px 20px;
+	margin-bottom: 25px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 14px;
+	backdrop-filter: blur(20px);
+	box-shadow:
+		0 0 20px var(--ifm-color-primary),
+		0 4px 15px rgba(0, 0, 0, 0.2);
+	transition: all 0.3s ease;
 }
 
 .user-badge:hover {
-    box-shadow:
-        0 0 30px var(--ifm-color-primary),
-        0 6px 20px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
+	box-shadow:
+		0 0 30px var(--ifm-color-primary),
+		0 6px 20px rgba(0, 0, 0, 0.3);
+	transform: translateY(-2px);
 }
 
 .user-info {
-    color: var(--ifm-color-primary-light);
-    font-weight: 600;
-    text-shadow: 0 0 8px var(--ifm-color-primary);
+	color: var(--ifm-color-primary-light);
+	font-weight: 600;
+	text-shadow: 0 0 8px var(--ifm-color-primary);
 }
 
 .access-status {
-    color: var(--ifm-color-reverse);
-    font-size: 12px;
-    background: linear-gradient(45deg, var(--ifm-color-primary), var(--ifm-color-reverse));
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--ifm-color-reverse);
-    text-shadow: 0 0 5px var(--ifm-color-reverse);
-    box-shadow: 0 0 10px rgba(120, 247, 222, 0.3);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+	color: var(--ifm-color-reverse);
+	font-size: 12px;
+	background: linear-gradient(
+		45deg,
+		var(--ifm-color-primary),
+		var(--ifm-color-reverse)
+	);
+	padding: 6px 12px;
+	border-radius: 8px;
+	border: 1px solid var(--ifm-color-reverse);
+	text-shadow: 0 0 5px var(--ifm-color-reverse);
+	box-shadow: 0 0 10px rgba(120, 247, 222, 0.3);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .doc-protector-container {
-        padding: 20px 15px;
-        min-height: 60vh;
-    }
+	.doc-protector-container {
+		padding: 20px 15px;
+		min-height: 60vh;
+	}
 
-    .access-denied {
-        padding: 40px 25px;
-        margin: 0 15px;
-        max-width: 90%;
-    }
+	.access-denied {
+		padding: 40px 25px;
+		margin: 0 15px;
+		max-width: 90%;
+	}
 
-    .access-denied h2 {
-        font-size: 1.8em;
-    }
+	.access-denied h2 {
+		font-size: 1.8em;
+	}
 
-    .lock-icon {
-        font-size: 60px;
-    }
+	.lock-icon {
+		font-size: 60px;
+	}
 
-    .access-button {
-        padding: 1em 2em;
-        font-size: 14px;
-    }
+	.access-button {
+		padding: 1em 2em;
+		font-size: 14px;
+	}
 
-    .user-badge {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 15px;
-    }
+	.user-badge {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		padding: 15px;
+	}
 
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-    }
+	.loading-spinner {
+		width: 50px;
+		height: 50px;
+	}
 }
 
 @media (max-width: 480px) {
-    .access-denied {
-        padding: 30px 20px;
-    }
+	.access-denied {
+		padding: 30px 20px;
+	}
 
-    .access-denied h2 {
-        font-size: 1.5em;
-    }
+	.access-denied h2 {
+		font-size: 1.5em;
+	}
 
-    .lock-icon {
-        font-size: 48px;
-    }
+	.lock-icon {
+		font-size: 48px;
+	}
 }

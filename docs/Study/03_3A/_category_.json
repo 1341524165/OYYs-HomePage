@@ -1,8 +1,8 @@
 {
-    "label": "3A",
-    "position": 3,
-    "link": {
-        "type": "generated-index",
-        "description": "学习笔记"
-    }
+	"label": "3A",
+	"position": 3,
+	"link": {
+		"type": "generated-index",
+		"description": "学习笔记"
+	}
 }

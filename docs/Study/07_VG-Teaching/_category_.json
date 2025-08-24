@@ -1,8 +1,8 @@
 {
-    "label": "VG-Teaching",
-    "position": 7,
-    "link": {
-        "type": "generated-index",
-        "description": "Video Game Courseware"
-    }
+	"label": "VG-Teaching",
+	"position": 7,
+	"link": {
+		"type": "generated-index",
+		"description": "Video Game Courseware"
+	}
 }

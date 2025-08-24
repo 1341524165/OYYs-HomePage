@@ -1,8 +1,8 @@
 {
-    "label": "D-Learning",
-    "position": 4,
-    "link": {
-        "type": "generated-index",
-        "description": "图像处理与深度学习_笔记"
-    }
+	"label": "D-Learning",
+	"position": 4,
+	"link": {
+		"type": "generated-index",
+		"description": "图像处理与深度学习_笔记"
+	}
 }

@@ -1,8 +1,8 @@
 {
-    "label": "Game",
-    "position": 4,
-    "link": {
-        "type": "generated-index",
-        "description": "游戏分享"
-    }
+	"label": "Game",
+	"position": 4,
+	"link": {
+		"type": "generated-index",
+		"description": "游戏分享"
+	}
 }
