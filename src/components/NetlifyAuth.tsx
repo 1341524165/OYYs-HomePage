@@ -899,7 +899,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			<div
 				style={{
 					background:
-						'linear-gradient(225deg, var(--ifm-color-primary-dark), var(--ifm-color-primary))',
+						'linear-gradient(225deg, var(--ifm-color-primary-darkest), var(--ifm-color-primary-lightest))',
 					color: 'white',
 					padding: '1rem 1.5rem',
 					borderRadius: '16px',
