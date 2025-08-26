@@ -78,23 +78,17 @@ tags:
 打开 **Window（窗口） > Animation（动画） > Animation（动画）**
 
 1. 飞船的推进动画：
-
-
     - 选择场景中`Player`对象，点击 Animation 窗口中的 Create 按钮，保存为 `Thrust.anim`
     - 设置 `Sample（采样帧率）`为 10，点击 `Add Property（添加属性）`以添加 **SpriteRenderer > Sprite** 轨道
     - 将两个不同的贴图（之前导入的 `3-` 作为前缀的精灵）置于相邻关键帧（如 0:1 与 0:2），形成来回闪烁
 
 2. 子弹的推进动画：
-
-
     - 同上
 
 3. 爆炸动画：
-
-
     - 步骤同上。区别在于：
-      - ① `Sample（采样帧率）` 设置为 `20`，并且序列帧较多，按素材顺序放入（`3, 4, 6, 13, 2, 5` 这 6 张帧图）
-      - ② 在 Project 底下选中 `Explosion` 动画，在 Inspector 中取消勾选 **Loop Time（循环时间）**，确保不循环播放
+        - ① `Sample（采样帧率）` 设置为 `20`，并且序列帧较多，按素材顺序放入（`3, 4, 6, 13, 2, 5` 这 6 张帧图）
+        - ② 在 Project 底下选中 `Explosion` 动画，在 Inspector 中取消勾选 **Loop Time（循环时间）**，确保不循环播放
 
 > 清理：以上 Prefab（子弹、陨石、爆炸）不要常驻场景内，后续均通过代码生成。
 
@@ -150,6 +144,8 @@ public class Ship : MonoBehaviour
 ```
 
 > 正如前文所说，本次飞船是 `Kinematic` 类型的 Rigidbody，因此我们需要手动设置其位置来实现其自动移动，不依赖 AddForce。
+
+---
 
 2. 陨石控制脚本：速度与出界回收
 

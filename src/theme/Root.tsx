@@ -13,10 +13,10 @@ export default function Root({ children }) {
 			'https://identity.netlify.com/v1/netlify-identity-widget.js';
 		script.async = true;
 		script.onload = () => {
-			console.log('Netlify Identity 脚本加载完成');
+			// Netlify Identity 脚本加载完成
 		};
 		script.onerror = () => {
-			console.error('Netlify Identity 脚本加载失败');
+			// Netlify Identity 脚本加载失败
 		};
 		document.head.appendChild(script);
 

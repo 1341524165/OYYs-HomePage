@@ -14,7 +14,7 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 	protectedPaths = ['/docs/study/vg-teaching'],
 	currentPath,
 }) => {
-	const { user, loading, error, login } = useAuth();
+	const { user, loading, error, login, isClient } = useAuth();
 
 	// 检查当前路径是否需要保护
 	const isProtectedPath = () => {
@@ -41,6 +41,16 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 	// 如果不是受保护的路径，直接显示内容
 	if (!isProtectedPath()) {
 		return <>{children}</>;
+	}
+
+	// 服务器端渲染时，对于受保护的路径显示加载状态
+	if (!isClient) {
+		return (
+			<div className="doc-protector-loading">
+				<div className="loading-spinner"></div>
+				<p>正在验证访问权限...</p>
+			</div>
+		);
 	}
 
 	// 加载中状态
@@ -108,7 +118,19 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 		<div className="doc-protector-content">
 			<div className="user-badge">
 				<span className="user-info">
-					👤 {user.user_metadata?.full_name || user.email}
+					👤{' '}
+					{(() => {
+						try {
+							return (
+								user?.user_metadata?.full_name ||
+								user?.email ||
+								user?.id ||
+								'已验证用户'
+							);
+						} catch (e) {
+							return '已验证用户';
+						}
+					})()}
 				</span>
 				<span className="access-status">已验证访问</span>
 			</div>

@@ -4,7 +4,12 @@ import AuthButton from '../AuthButton';
 import './styles.module.css';
 
 const AuthComponent: React.FC = () => {
-	const { user, loading, error, login, logout } = useAuth();
+	const { user, loading, error, login, logout, isClient } = useAuth();
+
+	// 服务器端渲染时不显示任何内容，避免水合错误
+	if (!isClient) {
+		return null;
+	}
 
 	if (loading) {
 		return <div className="auth-loading">加载中...</div>;
@@ -25,7 +30,21 @@ const AuthComponent: React.FC = () => {
 			{user ? (
 				<div className="user-info">
 					<span className="welcome-text">
-						欢迎, {user.user_metadata?.full_name || user.email}!
+						欢迎,{' '}
+						{(() => {
+							try {
+								return (
+									user?.user_metadata?.full_name ||
+									user?.email ||
+									user?.id ||
+									JSON.stringify(user)?.slice(0, 20) ||
+									'用户'
+								);
+							} catch (e) {
+								return '用户';
+							}
+						})()}
+						!
 					</span>
 					<AuthButton
 						onClick={logout}
