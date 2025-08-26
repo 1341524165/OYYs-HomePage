@@ -90,8 +90,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
 					'[class*="netlify"][style*="position: fixed"], ' +
 					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="display: block !important"]'
+					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"])'
 			);
 
 			problematicElements.forEach(el => {
@@ -301,8 +300,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				// 额外检查：如果发现任何全屏的固定定位元素，立即隐藏
 				const fullscreenElements = document.querySelectorAll(
 					'iframe[style*="position: fixed"][style*="width: 100%"][style*="height: 100%"], ' +
-						'[style*="position: fixed"][style*="z-index: 99"], ' +
-						'[style*="display: block !important"][style*="position: fixed"]'
+						'[style*="position: fixed"][style*="z-index: 99"]'
 				);
 
 				fullscreenElements.forEach(el => {
