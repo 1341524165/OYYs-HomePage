@@ -15,6 +15,142 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const scriptLoadedRef = useRef(false);
 	const initCompletedRef = useRef(false);
 
+	// 美化的包裹框组件
+	const AuthContainer: React.FC<{
+		children: React.ReactNode;
+		variant?: 'default' | 'error' | 'success';
+		className?: string;
+	}> = ({ children, variant = 'default', className = '' }) => {
+		const getVariantStyles = () => {
+			switch (variant) {
+				case 'error':
+					return {
+						borderColor: '#ff6b6b',
+						boxShadowColor: 'rgba(255, 107, 107, 0.2)',
+						backgroundGradient:
+							'radial-gradient(circle, rgba(255, 107, 107, 0.05) 0%, transparent 70%)',
+					};
+				case 'success':
+					return {
+						borderColor: 'var(--ifm-color-primary)',
+						boxShadowColor: 'rgba(108, 0, 148, 0.3)',
+						backgroundGradient:
+							'radial-gradient(circle, rgba(108, 0, 148, 0.08) 0%, transparent 70%)',
+					};
+				default:
+					return {
+						borderColor: 'var(--ifm-color-primary)',
+						boxShadowColor: 'rgba(108, 0, 148, 0.15)',
+						backgroundGradient:
+							'radial-gradient(circle, rgba(108, 0, 148, 0.03) 0%, transparent 70%)',
+					};
+			}
+		};
+
+		const variantStyles = getVariantStyles();
+
+		return (
+			<div
+				className={`auth-container ${className}`}
+				style={{
+					maxWidth: '650px',
+					margin: '2rem auto',
+					padding: '2.5rem',
+					background: 'var(--ifm-hero-background-color)',
+					border: `2px solid ${variantStyles.borderColor}`,
+					borderRadius: '24px',
+					boxShadow: `0 8px 32px ${variantStyles.boxShadowColor}`,
+					position: 'relative',
+					overflow: 'hidden',
+					transition: 'all 0.3s ease',
+				}}
+			>
+				{/* 装饰性背景渐变 */}
+				<div
+					style={{
+						position: 'absolute',
+						top: '-60%',
+						left: '-60%',
+						width: '220%',
+						height: '220%',
+						background: variantStyles.backgroundGradient,
+						pointerEvents: 'none',
+						zIndex: 1,
+						animation: 'gentle-float 20s ease-in-out infinite',
+					}}
+				/>
+
+				{/* 装饰性几何图形 */}
+				<div
+					style={{
+						position: 'absolute',
+						top: '20px',
+						right: '20px',
+						width: '60px',
+						height: '60px',
+						background: `conic-gradient(from 0deg, ${variantStyles.borderColor}, transparent, ${variantStyles.borderColor})`,
+						borderRadius: '50%',
+						opacity: 0.1,
+						animation: 'rotate-slow 15s linear infinite',
+						zIndex: 1,
+					}}
+				/>
+
+				<div
+					style={{
+						position: 'absolute',
+						bottom: '20px',
+						left: '20px',
+						width: '40px',
+						height: '40px',
+						background: `linear-gradient(45deg, ${variantStyles.borderColor}, transparent)`,
+						opacity: 0.1,
+						animation: 'pulse-gentle 4s ease-in-out infinite',
+						zIndex: 1,
+					}}
+				/>
+
+				{/* 内容区域 */}
+				<div
+					style={{
+						position: 'relative',
+						zIndex: 2,
+						width: '100%',
+						height: '100%',
+					}}
+				>
+					{children}
+				</div>
+
+				{/* 全局CSS样式 */}
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+							@keyframes gentle-float {
+								0%, 100% { transform: translate(0, 0) rotate(0deg); }
+								25% { transform: translate(10px, -10px) rotate(1deg); }
+								50% { transform: translate(-5px, 5px) rotate(-1deg); }
+								75% { transform: translate(-10px, -5px) rotate(0.5deg); }
+							}
+							@keyframes rotate-slow {
+								from { transform: rotate(0deg); }
+								to { transform: rotate(360deg); }
+							}
+							@keyframes pulse-gentle {
+								0%, 100% { opacity: 0.1; transform: scale(1); }
+								50% { opacity: 0.2; transform: scale(1.1); }
+							}
+							.auth-container:hover {
+								transform: translateY(-2px);
+								box-shadow: 0 12px 40px ${variantStyles.boxShadowColor};
+							}
+						`,
+					}}
+				/>
+			</div>
+		);
+	};
+
 	// 统一的显示名计算
 	const computeDisplayName = (u: any): string => {
 		if (!u) return '';
@@ -459,68 +595,40 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 	if (loading) {
 		return (
-			<div
-				style={{
-					maxWidth: '500px',
-					margin: '2rem auto',
-					padding: '3rem',
-					textAlign: 'center',
-					background: 'var(--ifm-hero-background-color)',
-					borderRadius: '16px',
-					border: '2px solid var(--ifm-color-primary)',
-					boxShadow: '0 6px 24px rgba(108, 0, 148, 0.15)',
-					position: 'relative',
-					overflow: 'hidden',
-				}}
-			>
-				{/* 装饰性背景元素 */}
-				<div
-					style={{
-						position: 'absolute',
-						top: '-50%',
-						left: '-50%',
-						width: '200%',
-						height: '200%',
-						background:
-							'radial-gradient(circle, rgba(108, 0, 148, 0.03) 0%, transparent 70%)',
-						pointerEvents: 'none',
-						zIndex: 1,
-					}}
-				/>
-
-				<div style={{ position: 'relative', zIndex: 2 }}>
+			<AuthContainer>
+				<div style={{ textAlign: 'center' }}>
 					{/* 加载动画 */}
 					<div
 						style={{
 							display: 'inline-block',
-							width: '40px',
-							height: '40px',
-							border: '3px solid rgba(108, 0, 148, 0.2)',
-							borderTop: '3px solid var(--ifm-color-primary)',
+							width: '50px',
+							height: '50px',
+							border: '4px solid rgba(108, 0, 148, 0.2)',
+							borderTop: '4px solid var(--ifm-color-primary)',
 							borderRadius: '50%',
 							animation: 'spin 1s linear infinite',
-							marginBottom: '1rem',
+							marginBottom: '1.5rem',
 						}}
 					/>
+					<h3
+						style={{
+							fontSize: '1.4rem',
+							color: 'var(--ifm-color-primary)',
+							fontWeight: '600',
+							margin: '0 0 0.5rem 0',
+						}}
+					>
+						正在验证访问权限
+					</h3>
 					<p
 						style={{
-							fontSize: '1.2rem',
-							color: 'var(--ifm-color-primary)',
-							fontWeight: '500',
+							fontSize: '1rem',
+							color: 'var(--ifm-color-baw)',
+							opacity: 0.8,
 							margin: 0,
 						}}
 					>
-						正在验证访问权限...
-					</p>
-					<p
-						style={{
-							fontSize: '0.9rem',
-							color: 'var(--ifm-color-baw)',
-							opacity: 0.7,
-							marginTop: '0.5rem',
-						}}
-					>
-						请稍候
+						请稍候，正在检查您的访问权限...
 					</p>
 				</div>
 
@@ -528,65 +636,46 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				<style
 					dangerouslySetInnerHTML={{
 						__html: `
-						@keyframes spin {
-							0% { transform: rotate(0deg); }
-							100% { transform: rotate(360deg); }
-						}
-					`,
+							@keyframes spin {
+								0% { transform: rotate(0deg); }
+								100% { transform: rotate(360deg); }
+							}
+						`,
 					}}
 				/>
-			</div>
+			</AuthContainer>
 		);
 	}
 
 	if (error) {
 		return (
-			<div
-				style={{
-					maxWidth: '550px',
-					margin: '2rem auto',
-					padding: '2.5rem',
-					border: '2px solid #ff6b6b',
-					borderRadius: '16px',
-					textAlign: 'center',
-					background: 'var(--ifm-hero-background-color)',
-					boxShadow: '0 6px 24px rgba(255, 107, 107, 0.2)',
-					position: 'relative',
-					overflow: 'hidden',
-				}}
-			>
-				{/* 装饰性背景元素 */}
-				<div
-					style={{
-						position: 'absolute',
-						top: '-30%',
-						left: '-30%',
-						width: '160%',
-						height: '160%',
-						background:
-							'radial-gradient(circle, rgba(255, 107, 107, 0.08) 0%, transparent 70%)',
-						pointerEvents: 'none',
-						zIndex: 1,
-					}}
-				/>
-
-				<div style={{ position: 'relative', zIndex: 2 }}>
+			<AuthContainer variant="error">
+				<div style={{ textAlign: 'center' }}>
 					<h2
 						style={{
-							fontSize: '1.6rem',
+							fontSize: '1.8rem',
 							color: '#ff6b6b',
 							marginBottom: '1rem',
 							fontWeight: 'bold',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: '0.5rem',
 						}}
 					>
-						⚠️ 认证服务不可用
+						<span style={{ fontSize: '1.5rem' }}>⚠️</span>
+						认证服务不可用
 					</h2>
 					<p
 						style={{
-							fontSize: '1rem',
+							fontSize: '1.1rem',
 							color: 'var(--ifm-color-baw)',
-							marginBottom: '1.5rem',
-							lineHeight: '1.5',
+							marginBottom: '2rem',
+							lineHeight: '1.6',
+							background: 'rgba(255, 107, 107, 0.1)',
+							padding: '1rem',
+							borderRadius: '8px',
+							border: '1px solid rgba(255, 107, 107, 0.2)',
 						}}
 					>
 						{error}
@@ -659,42 +748,14 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						}}
 					/>
 				</div>
-			</div>
+			</AuthContainer>
 		);
 	}
 
 	if (!user) {
 		return (
-			<div
-				style={{
-					maxWidth: '600px',
-					margin: '2rem auto',
-					padding: '3rem',
-					border: '2px solid var(--ifm-color-primary)',
-					borderRadius: '20px',
-					textAlign: 'center',
-					background: 'var(--ifm-hero-background-color)',
-					boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-					position: 'relative',
-					overflow: 'hidden',
-				}}
-			>
-				{/* 装饰性背景元素 */}
-				<div
-					style={{
-						position: 'absolute',
-						top: '-50%',
-						left: '-50%',
-						width: '200%',
-						height: '200%',
-						background:
-							'radial-gradient(circle, rgba(108, 0, 148, 0.05) 0%, transparent 70%)',
-						pointerEvents: 'none',
-						zIndex: 1,
-					}}
-				/>
-
-				<div style={{ position: 'relative', zIndex: 2 }}>
+			<AuthContainer variant="default" className="auth-login-container">
+				<div style={{ textAlign: 'center' }}>
 					<h2
 						style={{
 							fontSize: '1.8rem',
@@ -714,7 +775,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						}}
 					>
 						为了保护学生隐私，此内容需要通过 Netlify Identity
-						验证身份。
+						验证身份（最好是 Gmail, 谁会真的为了这个去注册一个
+						Netlify 账号啊..
 					</p>
 
 					{/* 美化的登录按钮 */}
@@ -827,26 +889,28 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						如果您是学生，请联系老师将您的邮箱添加到访问列表
 					</p>
 				</div>
-			</div>
+			</AuthContainer>
 		);
 	}
 
 	return (
 		<div>
+			{/* 已登录状态的美化容器 */}
 			<div
 				style={{
 					background:
 						'linear-gradient(135deg, var(--ifm-color-primary), var(--ifm-color-primary-light))',
 					color: 'white',
 					padding: '1rem 1.5rem',
-					borderRadius: '12px',
+					borderRadius: '16px',
 					margin: '1rem 0',
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
-					boxShadow: '0 4px 20px rgba(108, 0, 148, 0.3)',
+					boxShadow: '0 6px 24px rgba(108, 0, 148, 0.3)',
 					position: 'relative',
 					overflow: 'hidden',
+					transition: 'all 0.3s ease',
 				}}
 			>
 				{/* 装饰性背景元素 */}
@@ -861,6 +925,22 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 							'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
 						pointerEvents: 'none',
 						zIndex: 1,
+						animation: 'gentle-float 15s ease-in-out infinite',
+					}}
+				/>
+
+				{/* 装饰性几何图形 */}
+				<div
+					style={{
+						position: 'absolute',
+						bottom: '10px',
+						left: '20px',
+						width: '30px',
+						height: '30px',
+						background: 'rgba(255, 255, 255, 0.1)',
+						borderRadius: '50%',
+						animation: 'pulse-gentle 3s ease-in-out infinite',
+						zIndex: 1,
 					}}
 				/>
 
@@ -873,8 +953,15 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						gap: '0.5rem',
 					}}
 				>
-					<span style={{ fontSize: '1.2rem' }}>✅</span>
-					<span style={{ fontWeight: '500' }}>
+					<span
+						style={{
+							fontSize: '1.4rem',
+							animation: 'bounce-in 0.6s ease-out',
+						}}
+					>
+						✅
+					</span>
+					<span style={{ fontWeight: '600', fontSize: '1rem' }}>
 						已验证访问 - {displayName || '已登录'}
 					</span>
 				</div>
@@ -886,27 +973,55 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						background: 'rgba(255, 255, 255, 0.2)',
 						border: '1px solid rgba(255, 255, 255, 0.3)',
 						color: 'white',
-						padding: '0.5rem 1rem',
-						borderRadius: '8px',
+						padding: '0.6rem 1.2rem',
+						borderRadius: '10px',
 						cursor: 'pointer',
 						fontSize: '0.9rem',
-						fontWeight: '500',
+						fontWeight: '600',
 						transition: 'all 0.3s ease',
 						backdropFilter: 'blur(10px)',
+						boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
 					}}
 					onMouseEnter={e => {
 						const target = e.target as HTMLButtonElement;
 						target.style.background = 'rgba(255, 255, 255, 0.3)';
 						target.style.transform = 'scale(1.05)';
+						target.style.boxShadow =
+							'0 4px 15px rgba(0, 0, 0, 0.2)';
 					}}
 					onMouseLeave={e => {
 						const target = e.target as HTMLButtonElement;
 						target.style.background = 'rgba(255, 255, 255, 0.2)';
 						target.style.transform = 'scale(1)';
+						target.style.boxShadow =
+							'0 2px 10px rgba(0, 0, 0, 0.1)';
 					}}
 				>
 					登出
 				</button>
+
+				{/* 添加成功状态的动画CSS */}
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+							@keyframes bounce-in {
+								0% { transform: scale(0); opacity: 0; }
+								50% { transform: scale(1.2); opacity: 0.8; }
+								100% { transform: scale(1); opacity: 1; }
+							}
+							@keyframes gentle-float {
+								0%, 100% { transform: translate(0, 0) rotate(0deg); }
+								25% { transform: translate(5px, -5px) rotate(0.5deg); }
+								50% { transform: translate(-3px, 3px) rotate(-0.5deg); }
+								75% { transform: translate(3px, -3px) rotate(0.25deg); }
+							}
+							@keyframes pulse-gentle {
+								0%, 100% { opacity: 0.1; transform: scale(1); }
+								50% { opacity: 0.2; transform: scale(1.05); }
+							}
+						`,
+					}}
+				/>
 			</div>
 			{children}
 		</div>
