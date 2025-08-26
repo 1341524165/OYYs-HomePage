@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 declare global {
 	interface Window {
@@ -10,24 +10,28 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
+	const widgetOpenRef = useRef(false);
 
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
-			// 清理所有 Netlify 相关元素
+			// 如果身份窗口正在打开，跳过清理，避免瞬间被移除
+			if (widgetOpenRef.current) return;
+
+			// 清理所有 Netlify 相关元素（保持 widget 但禁用交互）
 			const overlays = document.querySelectorAll(
 				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"], iframe[title*="identity"]'
 			);
 			overlays.forEach(el => {
-				// 直接移除所有相关元素，包括主 widget（必要时会在下次 open 时重建）
-				el.parentElement?.removeChild(el);
+				if ((el as HTMLElement).id === 'netlify-identity-widget') {
+					const htmlEl = el as HTMLElement;
+					htmlEl.style.display = 'none';
+					htmlEl.style.pointerEvents = 'none';
+					htmlEl.style.zIndex = '-9999';
+				} else {
+					el.parentElement?.removeChild(el);
+				}
 			});
-
-			// 单独兜底清除容器元素
-			const widgetContainer = document.getElementById(
-				'netlify-identity-widget'
-			);
-			widgetContainer?.parentElement?.removeChild(widgetContainer);
 
 			// 恢复页面交互
 			document.body.style.overflow = '';
@@ -53,11 +57,20 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				setUser(currentUser);
 				setLoading(false);
 
+				// 打开/关闭事件：仅在关闭后做清理
+				window.netlifyIdentity.on('open', () => {
+					widgetOpenRef.current = true;
+				});
+				window.netlifyIdentity.on('close', () => {
+					widgetOpenRef.current = false;
+					cleanupOverlays();
+				});
+
 				// 监听登录事件
 				window.netlifyIdentity.on('login', user => {
 					setUser(user);
 					setError('');
-					// 强制清理覆盖层
+					widgetOpenRef.current = false;
 					setTimeout(() => {
 						window.netlifyIdentity.close();
 						cleanupOverlays();
@@ -68,6 +81,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				window.netlifyIdentity.on('logout', () => {
 					setUser(null);
 					setError('');
+					widgetOpenRef.current = false;
 					cleanupOverlays();
 				});
 
@@ -86,17 +100,16 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		document.head.appendChild(script);
 
-		// 定期清理任务，确保没有遗漏的覆盖层
+		// 定期清理任务，避免残留（窗口打开时跳过）
 		const intervalCleanup = setInterval(() => {
-			cleanupOverlays();
-		}, 1000);
+			if (!widgetOpenRef.current) cleanupOverlays();
+		}, 1500);
 
-		// 添加全局点击监听器作为最后保障
+		// 添加全局点击监听器作为最后保障（窗口打开时跳过）
 		const handleGlobalClick = () => {
-			cleanupOverlays();
+			if (!widgetOpenRef.current) cleanupOverlays();
 		};
 
-		// 延迟添加，避免干扰正常的登录流程
 		const timer = setTimeout(() => {
 			document.addEventListener('click', handleGlobalClick, true);
 		}, 2000);
@@ -113,6 +126,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
+			widgetOpenRef.current = true; // 预防清理器误删
 			window.netlifyIdentity.open();
 		}
 	};
