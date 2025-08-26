@@ -43,7 +43,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// 极简清理：仅恢复页面交互，不触碰任何 iframe/DOM
+		// 清理残留覆盖层，但保留核心组件
 		const cleanupOverlays = () => {
 			if (widgetOpenRef.current) return;
 
@@ -52,18 +52,21 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			const widgets = document.querySelectorAll(
 				'iframe[id="netlify-identity-widget"]'
 			);
-			widgets.forEach((el, idx) => {
-				const hw = el as HTMLElement;
-				if (idx === widgets.length - 1) {
-					hw.style.display = 'block';
-					hw.style.pointerEvents = 'auto';
-					hw.style.zIndex = '9999';
-					hw.style.visibility = 'visible';
+
+			// 将所有widget设置为不可见且不阻挡点击
+			widgets.forEach((widget, index) => {
+				const htmlWidget = widget as HTMLElement;
+				// 保留最后一个widget作为活跃的，其他的完全隐藏
+				if (index === widgets.length - 1) {
+					htmlWidget.style.display = 'none';
+					htmlWidget.style.pointerEvents = 'none';
+					htmlWidget.style.zIndex = '-9999';
 				} else {
-					hw.style.display = 'none';
-					hw.style.pointerEvents = 'none';
-					hw.style.zIndex = '-9999';
-					hw.style.visibility = 'hidden';
+					// 完全隐藏其他widget
+					htmlWidget.style.display = 'none';
+					htmlWidget.style.pointerEvents = 'none';
+					htmlWidget.style.zIndex = '-9999';
+					htmlWidget.style.visibility = 'hidden';
 				}
 			});
 
@@ -204,10 +207,30 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		document.head.appendChild(script);
 
+		// 清理 background (遮罩层)
+		// 循环检查，如果认证弹窗没开，cleanupOverlays()
+		const intervalCleanup = setInterval(() => {
+			if (!widgetOpenRef.current) cleanupOverlays();
+		}, 1500);
+
+		// 定义一个全局点击事件处理函数，如果认证弹窗没开，也清理遮罩层
+		const handleGlobalClick = () => {
+			if (!widgetOpenRef.current) cleanupOverlays();
+		};
+
+		// 等2s再加一个点击事件监听，调用上面的全局点击处理函数
+		const timer = setTimeout(() => {
+			document.addEventListener('click', handleGlobalClick, true);
+		}, 2000);
+
+		// 返回一个清理函数，卸载时移除 script、定时器、事件监听
 		return () => {
 			if (document.head.contains(script)) {
 				document.head.removeChild(script);
 			}
+			clearTimeout(timer);
+			clearInterval(intervalCleanup);
+			document.removeEventListener('click', handleGlobalClick, true);
 		};
 	}, []);
 
