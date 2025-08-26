@@ -152,7 +152,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		};
 
 		const timer = setTimeout(() => {
-			document.addEventListener('click', handleGlobalClick, true);
+			// use bubbling phase to ensure button onClick runs first
+			document.addEventListener('click', handleGlobalClick, false);
 		}, 2000);
 
 		return () => {
@@ -161,7 +162,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			}
 			clearTimeout(timer);
 			clearInterval(intervalCleanup);
-			document.removeEventListener('click', handleGlobalClick, true);
+			document.removeEventListener('click', handleGlobalClick, false);
 		};
 	}, []);
 
