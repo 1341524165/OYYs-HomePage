@@ -139,10 +139,48 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					setDisplayName(computeDisplayName(loggedIn));
 					// 继续轮询，直到拿到完整的 user
 					refreshUserWithRetries();
+
+					// 立即清理所有可能阻挡的元素
 					setTimeout(() => {
 						try {
 							window.netlifyIdentity.close();
 							cleanupOverlays();
+
+							// 只清理空的netlify-identity-widget iframe
+							const widgets = document.querySelectorAll(
+								'iframe[id="netlify-identity-widget"]'
+							);
+							widgets.forEach(iframe => {
+								try {
+									// 检查iframe内部是否有内容
+									const iframeDoc = (
+										iframe as HTMLIFrameElement
+									).contentDocument;
+									const iframeBody = iframeDoc?.body;
+
+									// 如果body为空或只有空白内容，则隐藏这个iframe
+									if (
+										!iframeBody ||
+										iframeBody.innerHTML.trim() === '' ||
+										iframeBody.children.length === 0
+									) {
+										const htmlIframe =
+											iframe as HTMLElement;
+										htmlIframe.style.display = 'none';
+										htmlIframe.style.pointerEvents = 'none';
+										htmlIframe.style.zIndex = '-9999';
+									}
+								} catch (e) {
+									// 如果无法访问iframe内容（跨域限制），则跳过
+									console.log('无法检查iframe内容:', e);
+								}
+							});
+
+							// 重置所有可能被修改的样式
+							document.body.style.overflow = '';
+							document.body.style.pointerEvents = '';
+							document.documentElement.style.overflow = '';
+							document.documentElement.style.pointerEvents = '';
 						} catch {}
 					}, 300);
 				});
