@@ -8,38 +8,28 @@ declare global {
 
 const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState<any>(null);
+	const [displayName, setDisplayName] = useState<string>('');
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
 
 	// 统一的显示名计算
-	const getDisplayName = (u: any): string => {
+	const computeDisplayName = (u: any): string => {
 		if (!u) return '';
-
-		// 临时调试：查看用户对象结构
-		console.log('用户对象:', u);
-		console.log('user_metadata:', u?.user_metadata);
-		console.log('email:', u?.email);
-
-		const name =
+		return (
 			u?.user_metadata?.full_name ||
 			u?.user_metadata?.fullName ||
 			u?.user_metadata?.name ||
 			u?.email ||
 			u?.id ||
-			'';
-
-		console.log('最终显示名:', name);
-		return name;
+			''
+		);
 	};
 
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
-			// 如果身份窗口正在打开，跳过清理，避免瞬间被移除
 			if (widgetOpenRef.current) return;
-
-			// 清理所有 Netlify 相关元素（保持 widget 但禁用交互）
 			const overlays = document.querySelectorAll(
 				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"], iframe[title*="identity"]'
 			);
@@ -53,8 +43,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					el.parentElement?.removeChild(el);
 				}
 			});
-
-			// 恢复页面交互
 			document.body.style.overflow = '';
 			document.body.style.pointerEvents = '';
 			document.documentElement.style.overflow = '';
@@ -63,7 +51,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		cleanupOverlays();
 
-		// 动态加载 Netlify Identity 脚本
 		const script = document.createElement('script');
 		script.src =
 			'https://identity.netlify.com/v1/netlify-identity-widget.js';
@@ -75,16 +62,18 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				// 初始化：有用户则设置
 				window.netlifyIdentity.on('init', (u: any) => {
-					setUser(u || window.netlifyIdentity.currentUser());
+					const resolved = u || window.netlifyIdentity.currentUser();
+					setUser(resolved);
+					setDisplayName(computeDisplayName(resolved));
 					setLoading(false);
 				});
 
-				// 检查当前用户（作为兜底）
+				// 兜底获取当前用户
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
+				setDisplayName(computeDisplayName(currentUser));
 				setLoading(false);
 
-				// 打开/关闭事件：仅在关闭后做清理
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
 				});
@@ -93,33 +82,34 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					cleanupOverlays();
 				});
 
-				// 监听登录事件
+				// 登录：先用事件里的数据立即渲染显示名，再刷新
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
 					setError('');
 					widgetOpenRef.current = false;
-
-					// 延迟设置用户，确保数据完整加载
+					setDisplayName(computeDisplayName(loggedIn));
+					setUser(loggedIn);
 					setTimeout(() => {
 						try {
 							window.netlifyIdentity.close();
-							// 优先使用刷新后的数据，回退到登录事件数据
 							const refreshed =
 								window.netlifyIdentity.currentUser();
-							setUser(refreshed || loggedIn);
+							if (refreshed) {
+								setUser(refreshed);
+								setDisplayName(computeDisplayName(refreshed));
+							}
 							cleanupOverlays();
 						} catch {}
 					}, 300);
 				});
 
-				// 监听登出事件
 				window.netlifyIdentity.on('logout', () => {
 					setUser(null);
+					setDisplayName('');
 					setError('');
 					widgetOpenRef.current = false;
 					cleanupOverlays();
 				});
 
-				// 监听错误事件
 				window.netlifyIdentity.on('error', (err: any) => {
 					setError('认证服务出现问题，请稍后重试');
 					setLoading(false);
@@ -134,12 +124,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		document.head.appendChild(script);
 
-		// 定期清理任务，避免残留（窗口打开时跳过）
 		const intervalCleanup = setInterval(() => {
 			if (!widgetOpenRef.current) cleanupOverlays();
 		}, 1500);
 
-		// 添加全局点击监听器作为最后保障（窗口打开时跳过）
 		const handleGlobalClick = () => {
 			if (!widgetOpenRef.current) cleanupOverlays();
 		};
@@ -160,7 +148,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
-			widgetOpenRef.current = true; // 预防清理器误删
+			widgetOpenRef.current = true;
 			window.netlifyIdentity.open();
 		}
 	};
@@ -171,19 +159,16 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		}
 	};
 
-	// 检查当前路径是否需要保护
 	const isProtectedPath = () => {
 		if (typeof window === 'undefined') return false;
 		const path = window.location.pathname.toLowerCase();
 		return path.includes('/docs/study/vg-teaching');
 	};
 
-	// 如果不是受保护路径，直接显示内容
 	if (!isProtectedPath()) {
 		return <>{children}</>;
 	}
 
-	// 加载中
 	if (loading) {
 		return (
 			<div
@@ -199,7 +184,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	}
 
-	// 错误状态
 	if (error) {
 		return (
 			<div
@@ -233,7 +217,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	}
 
-	// 未登录
 	if (!user) {
 		return (
 			<div
@@ -273,7 +256,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	}
 
-	// 已登录，显示内容
 	return (
 		<div>
 			<div
@@ -288,7 +270,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					alignItems: 'center',
 				}}
 			>
-				<span>✅ 已验证访问 - {getDisplayName(user) || '已登录'}</span>
+				<span>✅ 已验证访问 - {displayName || '已登录'}</span>
 				<button
 					onClick={handleLogout}
 					style={{
