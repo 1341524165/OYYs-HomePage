@@ -47,6 +47,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		const cleanupOverlays = () => {
 			if (widgetOpenRef.current) return;
 
+			// 不删除iframe，而是通过CSS控制它们的可见性
 			// 仅显示最后一个（活动）widget，其他隐藏
 			const widgets = document.querySelectorAll(
 				'iframe[id="netlify-identity-widget"]'
@@ -65,7 +66,30 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					hw.style.visibility = 'hidden';
 				}
 			});
+
+			// 经典防御式.. - 清理其他可能阻塞的元素
+			const problematicElements = document.querySelectorAll(
+				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
+					'[class*="netlify"][style*="position: fixed"], ' +
+					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"])'
+			);
+
+			problematicElements.forEach(el => {
+				try {
+					if (el.parentElement) {
+						el.parentElement.removeChild(el);
+					}
+				} catch {}
+			});
+
+			// 重置body样式
+			document.body.style.overflow = '';
+			document.body.style.pointerEvents = '';
+			document.documentElement.style.overflow = '';
+			document.documentElement.style.pointerEvents = '';
 		};
+
+		// cleanupOverlays();
 
 		const script = document.createElement('script');
 		script.src =
@@ -100,7 +124,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
 				});
-
 				window.netlifyIdentity.on('close', () => {
 					widgetOpenRef.current = false;
 					cleanupOverlays();
