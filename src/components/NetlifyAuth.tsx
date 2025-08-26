@@ -26,7 +26,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	};
 
-	// temporarily refresh user until the user is fully loaded,,
+	// temporarily refresh user until the user is fully loaded,
 	const refreshUserWithRetries = (retries: number = 20) => {
 		try {
 			const u = window.netlifyIdentity?.currentUser();
@@ -172,7 +172,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 									}
 								} catch (e) {
 									// 如果无法访问iframe内容（跨域限制），则跳过
-									console.log('无法检查iframe内容:', e);
 								}
 							});
 
