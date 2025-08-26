@@ -8,6 +8,7 @@ declare global {
 
 const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState<any>(null);
+	const [displayName, setDisplayName] = useState<string>('');
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
@@ -65,13 +66,16 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				// 初始化：有用户则设置
 				window.netlifyIdentity.on('init', (u: any) => {
-					setUser(u || window.netlifyIdentity.currentUser());
+					const initUser = u || window.netlifyIdentity.currentUser();
+					setUser(initUser);
+					setDisplayName(getDisplayName(initUser));
 					setLoading(false);
 				});
 
 				// 检查当前用户（作为兜底）
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
+				setDisplayName(getDisplayName(currentUser));
 				setLoading(false);
 
 				// 打开/关闭事件：仅在关闭后做清理
@@ -87,6 +91,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
 					// 使用事件提供的用户，随后再刷新一次，确保带有完整字段
 					setUser(loggedIn);
+					setDisplayName(getDisplayName(loggedIn));
 					setError('');
 					widgetOpenRef.current = false;
 					setTimeout(() => {
@@ -94,7 +99,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 							window.netlifyIdentity.close();
 							const refreshed =
 								window.netlifyIdentity.currentUser();
-							if (refreshed) setUser(refreshed);
+							if (refreshed) {
+								setUser(refreshed);
+								setDisplayName(getDisplayName(refreshed));
+							}
 							cleanupOverlays();
 						} catch {}
 					}, 200);
@@ -103,6 +111,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				// 监听登出事件
 				window.netlifyIdentity.on('logout', () => {
 					setUser(null);
+					setDisplayName('');
 					setError('');
 					widgetOpenRef.current = false;
 					cleanupOverlays();
@@ -277,7 +286,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					alignItems: 'center',
 				}}
 			>
-				<span>✅ 已验证访问 - {getDisplayName(user) || '已登录'}</span>
+				<span>
+					✅ 已验证访问 -{' '}
+					{displayName || getDisplayName(user) || '已登录'}
+				</span>
 				<button
 					onClick={handleLogout}
 					style={{
