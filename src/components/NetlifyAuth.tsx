@@ -16,34 +16,18 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		const cleanupOverlays = () => {
 			// 清理所有 Netlify 相关元素
 			const overlays = document.querySelectorAll(
-				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"]'
+				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"], iframe[title*="identity"]'
 			);
 			overlays.forEach(el => {
-				if (el.id === 'netlify-identity-widget') {
-					// 主 widget 隐藏但不删除
-					const htmlEl = el as HTMLElement;
-					htmlEl.style.display = 'none';
-					htmlEl.style.pointerEvents = 'none';
-					htmlEl.style.zIndex = '-9999';
-				} else {
-					// 删除其他所有元素，包括 iframe
-					el.remove();
-				}
+				// 直接移除所有相关元素，包括主 widget（必要时会在下次 open 时重建）
+				el.parentElement?.removeChild(el);
 			});
 
-			// 特别处理可能的隐藏 iframe
-			const iframes = document.querySelectorAll('iframe');
-			iframes.forEach(iframe => {
-				const style = window.getComputedStyle(iframe);
-				if (
-					style.position === 'fixed' &&
-					style.width === '100%' &&
-					style.height === '100%' &&
-					(style.top === '0px' || style.left === '0px')
-				) {
-					iframe.remove();
-				}
-			});
+			// 单独兜底清除容器元素
+			const widgetContainer = document.getElementById(
+				'netlify-identity-widget'
+			);
+			widgetContainer?.parentElement?.removeChild(widgetContainer);
 
 			// 恢复页面交互
 			document.body.style.overflow = '';
@@ -104,25 +88,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		// 定期清理任务，确保没有遗漏的覆盖层
 		const intervalCleanup = setInterval(() => {
-			// 检查是否有阻止交互的全屏元素
-			const problematicElements =
-				document.querySelectorAll('iframe, div');
-			problematicElements.forEach(el => {
-				const style = window.getComputedStyle(el);
-				if (
-					style.position === 'fixed' &&
-					style.width === '100%' &&
-					style.height === '100%' &&
-					style.top === '0px' &&
-					style.left === '0px' &&
-					style.zIndex !== '-9999' &&
-					!el.closest('.navbar') &&
-					!el.closest('[data-theme]')
-				) {
-					console.log('发现并移除阻止交互的元素:', el);
-					el.remove();
-				}
-			});
+			cleanupOverlays();
 		}, 1000);
 
 		// 添加全局点击监听器作为最后保障
