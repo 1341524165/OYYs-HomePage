@@ -131,10 +131,7 @@ module.exports = async function createConfigAsync() {
 							label: '博客',
 							position: 'left',
 						},
-						{
-							type: 'custom-authComponent',
-							position: 'right',
-						},
+
 						{
 							href: 'https://github.com/1341524165?tab=repositories',
 							label: 'GitHub',

@@ -1,14 +1,12 @@
 import React from 'react';
 // @ts-ignore - resolved by Docusaurus at build time
 import Content from '@theme-original/DocItem/Content';
-import DocProtector from '../../../components/DocProtector';
+import NetlifyAuth from '../../../components/NetlifyAuth';
 
 export default function ContentWrapper(props) {
 	return (
-		<div suppressHydrationWarning>
-			<DocProtector>
-				<Content {...props} />
-			</DocProtector>
-		</div>
+		<NetlifyAuth>
+			<Content {...props} />
+		</NetlifyAuth>
 	);
 }

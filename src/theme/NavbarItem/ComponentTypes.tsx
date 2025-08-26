@@ -1,8 +1,4 @@
-import React from 'react';
+// @ts-ignore - resolved by Docusaurus at build time
 import ComponentTypes from '@theme-original/NavbarItem/ComponentTypes';
-import AuthComponent from '../../components/AuthComponent';
 
-export default {
-	...ComponentTypes,
-	'custom-authComponent': () => <AuthComponent />,
-};
+export default ComponentTypes;
