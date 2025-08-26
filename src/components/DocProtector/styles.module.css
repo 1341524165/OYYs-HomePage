@@ -1,3 +1,36 @@
+.doc-protector-wrapper {
+	position: relative;
+}
+
+/* 叠加层：默认隐藏，不拦截点击 */
+.doc-protector-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	pointer-events: none; /* 关键：默认不拦截 */
+	z-index: 1000;
+}
+
+/* 可见时启用点击拦截与背景模糊 */
+.overlay-visible {
+	background: rgba(0, 0, 0, 0.35);
+	backdrop-filter: blur(6px);
+	pointer-events: auto; /* 只有需要时拦截 */
+}
+
+/* 隐藏时透明且不拦截 */
+.overlay-hidden {
+	background: transparent;
+	pointer-events: none;
+}
+
+/* 继续沿用原有块样式 */
 .doc-protector-container {
 	min-height: 70vh;
 	display: flex;
@@ -42,7 +75,6 @@
 			0 0 20px var(--ifm-color-primary),
 			0 0 40px var(--ifm-color-reverse);
 	}
-
 	25% {
 		border-top-color: var(--ifm-color-reverse);
 		border-right-color: var(--ifm-color-a);
@@ -50,7 +82,6 @@
 			0 0 20px var(--ifm-color-reverse),
 			0 0 40px var(--ifm-color-a);
 	}
-
 	50% {
 		border-top-color: var(--ifm-color-a);
 		border-right-color: var(--ifm-color-primary);
@@ -58,7 +89,6 @@
 			0 0 20px var(--ifm-color-a),
 			0 0 40px var(--ifm-color-primary);
 	}
-
 	75% {
 		border-top-color: var(--ifm-color-primary);
 		border-right-color: var(--ifm-color-reverse);
@@ -66,7 +96,6 @@
 			0 0 20px var(--ifm-color-primary),
 			0 0 40px var(--ifm-color-reverse);
 	}
-
 	100% {
 		transform: rotate(360deg);
 		border-top-color: var(--ifm-color-primary);

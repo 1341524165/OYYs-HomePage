@@ -16,10 +16,9 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 }) => {
 	const { user, loading, error, login, isClient } = useAuth();
 
-	// 检查当前路径是否需要保护
+	// 是否受保护路径（SSR 时无法判断，尽量基于 pathname 推断）
 	const isProtectedPath = () => {
 		let pathname = '';
-
 		if (!currentPath && typeof window !== 'undefined') {
 			pathname = window.location.pathname;
 		} else if (currentPath) {
@@ -27,106 +26,98 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 		} else {
 			return false;
 		}
-
-		// URL解码并转换为小写进行比较
 		const decodedPath = decodeURIComponent(pathname).toLowerCase();
-
-		const isProtected = protectedPaths.some(path => {
-			const normalizedProtectedPath = path.toLowerCase();
-			return decodedPath.startsWith(normalizedProtectedPath);
-		});
-		return isProtected;
+		return protectedPaths.some(path =>
+			decodedPath.startsWith(path.toLowerCase())
+		);
 	};
 
-	// 如果不是受保护的路径，直接显示内容
-	if (!isProtectedPath()) {
-		return <>{children}</>;
-	}
+	const pathProtected = isProtectedPath();
+	const shouldShowOverlay =
+		pathProtected && isClient && (loading || !!error || !user);
 
-	// 服务器端渲染时，对于受保护的路径显示加载状态
-	if (!isClient) {
-		return (
-			<div className="doc-protector-loading">
-				<div className="loading-spinner"></div>
-				<p>正在验证访问权限...</p>
-			</div>
-		);
-	}
-
-	// 加载中状态
-	if (loading) {
-		return (
-			<div className="doc-protector-loading">
-				<div className="loading-spinner"></div>
-				<p>正在验证访问权限...</p>
-			</div>
-		);
-	}
-
-	// 错误状态
-	if (error) {
-		return (
-			<div className="doc-protector-container">
-				<div className="access-denied">
-					<div className="lock-icon">⚠️</div>
-					<h2>认证服务暂时不可用</h2>
-					<p>{error}</p>
-					<div style={{ margin: '25px 0' }}>
-						<AuthButton
-							onClick={login}
-							variant="primary"
-							size="medium"
-						>
-							重试连接
-						</AuthButton>
-					</div>
-					<p className="help-text">
-						如果问题持续存在，请检查网络连接或稍后重试
-					</p>
-				</div>
-			</div>
-		);
-	}
-
-	// 未登录状态
-	if (!user) {
-		return (
-			<div className="doc-protector-container">
-				<div className="access-denied">
-					<div className="lock-icon">🔒</div>
-					<h2>Game Design 教学内容需要登录访问</h2>
-					<p>为了保护学生隐私，当然也是为了限制本博客访问流量..</p>
-					<div style={{ margin: '25px 0' }}>
-						<AuthButton
-							onClick={login}
-							variant="primary"
-							size="medium"
-						>
-							请登录访问教学内容
-						</AuthButton>
-					</div>
-					<p className="help-text">
-						如果您是学生，请联系老师获取访问权限
-					</p>
-				</div>
-			</div>
-		);
-	}
-
-	// 已登录，显示受保护的内容
 	return (
-		<div className="doc-protector-content">
-			<div className="user-badge">
-				<span className="user-info">
-					👤{' '}
-					{user?.user_metadata?.full_name ||
-						user?.email ||
-						user?.id ||
-						'已验证用户'}
-				</span>
-				<span className="access-status">已验证访问</span>
+		<div className="doc-protector-wrapper">
+			{/* 叠加层：仅在受保护路径且未通过验证/加载/出错时可见 */}
+			<div
+				className={
+					'doc-protector-overlay ' +
+					(shouldShowOverlay ? 'overlay-visible' : 'overlay-hidden')
+				}
+				role="dialog"
+				aria-hidden={!shouldShowOverlay}
+			>
+				{pathProtected && (
+					<>
+						{loading && (
+							<div className="doc-protector-loading">
+								<div className="loading-spinner"></div>
+								<p>正在验证访问权限...</p>
+							</div>
+						)}
+						{!loading && error && (
+							<div className="access-denied">
+								<div className="lock-icon">⚠️</div>
+								<h2>认证服务暂时不可用</h2>
+								<p>{error}</p>
+								<div style={{ margin: '25px 0' }}>
+									<AuthButton
+										onClick={login}
+										variant="primary"
+										size="medium"
+									>
+										重试连接
+									</AuthButton>
+								</div>
+								<p className="help-text">
+									如果问题持续存在，请检查网络连接或稍后重试
+								</p>
+							</div>
+						)}
+						{!loading && !error && !user && (
+							<div className="access-denied">
+								<div className="lock-icon">🔒</div>
+								<h2>Game Design 教学内容需要登录访问</h2>
+								<p>
+									为了保护学生隐私，当然也是为了限制本博客访问流量..
+								</p>
+								<div style={{ margin: '25px 0' }}>
+									<AuthButton
+										onClick={login}
+										variant="primary"
+										size="medium"
+									>
+										请登录访问教学内容
+									</AuthButton>
+								</div>
+								<p className="help-text">
+									如果您是学生，请联系老师获取访问权限
+								</p>
+							</div>
+						)}
+					</>
+				)}
 			</div>
-			{children}
+
+			{/* 内容始终渲染，避免 SSR/CSR 结构不一致 */}
+			<div
+				aria-hidden={shouldShowOverlay}
+				className="doc-protector-content"
+			>
+				{pathProtected && user && (
+					<div className="user-badge">
+						<span className="user-info">
+							👤{' '}
+							{user?.user_metadata?.full_name ||
+								user?.email ||
+								user?.id ||
+								'已验证用户'}
+						</span>
+						<span className="access-status">已验证访问</span>
+					</div>
+				)}
+				{children}
+			</div>
 		</div>
 	);
 };
