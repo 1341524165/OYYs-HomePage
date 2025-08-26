@@ -461,13 +461,80 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		return (
 			<div
 				style={{
-					padding: '2rem',
+					maxWidth: '500px',
+					margin: '2rem auto',
+					padding: '3rem',
 					textAlign: 'center',
-					fontSize: '1.2rem',
-					color: 'var(--ifm-color-primary)',
+					background: 'var(--ifm-hero-background-color)',
+					borderRadius: '16px',
+					border: '2px solid var(--ifm-color-primary)',
+					boxShadow: '0 6px 24px rgba(108, 0, 148, 0.15)',
+					position: 'relative',
+					overflow: 'hidden',
 				}}
 			>
-				正在验证访问权限...
+				{/* 装饰性背景元素 */}
+				<div
+					style={{
+						position: 'absolute',
+						top: '-50%',
+						left: '-50%',
+						width: '200%',
+						height: '200%',
+						background:
+							'radial-gradient(circle, rgba(108, 0, 148, 0.03) 0%, transparent 70%)',
+						pointerEvents: 'none',
+						zIndex: 1,
+					}}
+				/>
+
+				<div style={{ position: 'relative', zIndex: 2 }}>
+					{/* 加载动画 */}
+					<div
+						style={{
+							display: 'inline-block',
+							width: '40px',
+							height: '40px',
+							border: '3px solid rgba(108, 0, 148, 0.2)',
+							borderTop: '3px solid var(--ifm-color-primary)',
+							borderRadius: '50%',
+							animation: 'spin 1s linear infinite',
+							marginBottom: '1rem',
+						}}
+					/>
+					<p
+						style={{
+							fontSize: '1.2rem',
+							color: 'var(--ifm-color-primary)',
+							fontWeight: '500',
+							margin: 0,
+						}}
+					>
+						正在验证访问权限...
+					</p>
+					<p
+						style={{
+							fontSize: '0.9rem',
+							color: 'var(--ifm-color-baw)',
+							opacity: 0.7,
+							marginTop: '0.5rem',
+						}}
+					>
+						请稍候
+					</p>
+				</div>
+
+				{/* 添加加载动画的CSS */}
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+						@keyframes spin {
+							0% { transform: rotate(0deg); }
+							100% { transform: rotate(360deg); }
+						}
+					`,
+					}}
+				/>
 			</div>
 		);
 	}
@@ -476,31 +543,122 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		return (
 			<div
 				style={{
-					maxWidth: '500px',
+					maxWidth: '550px',
 					margin: '2rem auto',
-					padding: '2rem',
+					padding: '2.5rem',
 					border: '2px solid #ff6b6b',
-					borderRadius: '12px',
+					borderRadius: '16px',
 					textAlign: 'center',
 					background: 'var(--ifm-hero-background-color)',
+					boxShadow: '0 6px 24px rgba(255, 107, 107, 0.2)',
+					position: 'relative',
+					overflow: 'hidden',
 				}}
 			>
-				<h2>⚠️ 认证服务不可用</h2>
-				<p>{error}</p>
-				<button
-					onClick={() => window.location.reload()}
+				{/* 装饰性背景元素 */}
+				<div
 					style={{
-						padding: '0.8rem 1.5rem',
-						backgroundColor: '#ff6b6b',
-						color: 'white',
-						border: 'none',
-						borderRadius: '6px',
-						fontSize: '1rem',
-						cursor: 'pointer',
+						position: 'absolute',
+						top: '-30%',
+						left: '-30%',
+						width: '160%',
+						height: '160%',
+						background:
+							'radial-gradient(circle, rgba(255, 107, 107, 0.08) 0%, transparent 70%)',
+						pointerEvents: 'none',
+						zIndex: 1,
 					}}
-				>
-					重新加载
-				</button>
+				/>
+
+				<div style={{ position: 'relative', zIndex: 2 }}>
+					<h2
+						style={{
+							fontSize: '1.6rem',
+							color: '#ff6b6b',
+							marginBottom: '1rem',
+							fontWeight: 'bold',
+						}}
+					>
+						⚠️ 认证服务不可用
+					</h2>
+					<p
+						style={{
+							fontSize: '1rem',
+							color: 'var(--ifm-color-baw)',
+							marginBottom: '1.5rem',
+							lineHeight: '1.5',
+						}}
+					>
+						{error}
+					</p>
+					<button
+						onClick={() => window.location.reload()}
+						style={{
+							position: 'relative',
+							padding: '1em 2em',
+							outline: 'none',
+							border: '1px solid #ff6b6b',
+							background:
+								'linear-gradient(135deg, #ff6b6b, #ff8b8b)',
+							color: 'white',
+							textTransform: 'uppercase',
+							letterSpacing: '1px',
+							fontSize: '14px',
+							overflow: 'hidden',
+							transition: 'all 0.3s ease',
+							borderRadius: '12px',
+							cursor: 'pointer',
+							fontWeight: 'bold',
+							boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)',
+						}}
+					>
+						{/* 装饰性span元素 */}
+						<span
+							style={{
+								position: 'absolute',
+								top: 0,
+								left: '-100%',
+								width: '100%',
+								height: '2px',
+								background:
+									'linear-gradient(90deg, transparent, #fff)',
+								transition: 'left 0.6s',
+							}}
+						/>
+						<span
+							style={{
+								position: 'absolute',
+								bottom: 0,
+								right: '-100%',
+								width: '100%',
+								height: '2px',
+								background:
+									'linear-gradient(90deg, transparent, #fff)',
+								transition: 'right 0.6s',
+								transitionDelay: '0.2s',
+							}}
+						/>
+						重新加载
+					</button>
+
+					{/* 添加悬停效果的CSS */}
+					<style
+						dangerouslySetInnerHTML={{
+							__html: `
+							button:hover {
+								transform: translateY(-2px);
+								box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+							}
+							button:hover span:nth-child(1) { left: 100%; }
+							button:hover span:nth-child(2) { right: 100%; }
+							button:active {
+								transform: translateY(0);
+								box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+							}
+						`,
+						}}
+					/>
+				</div>
 			</div>
 		);
 	}
@@ -509,37 +667,166 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		return (
 			<div
 				style={{
-					maxWidth: '500px',
+					maxWidth: '600px',
 					margin: '2rem auto',
-					padding: '2rem',
+					padding: '3rem',
 					border: '2px solid var(--ifm-color-primary)',
-					borderRadius: '12px',
+					borderRadius: '20px',
 					textAlign: 'center',
 					background: 'var(--ifm-hero-background-color)',
+					boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+					position: 'relative',
+					overflow: 'hidden',
 				}}
 			>
-				<h2>🔒 Game Design 教学内容需要登录访问</h2>
-				<p>
-					为了保护学生隐私，此内容需要通过 Netlify Identity 验证身份。
-				</p>
-				<button
-					onClick={handleLogin}
+				{/* 装饰性背景元素 */}
+				<div
 					style={{
-						padding: '1rem 2rem',
-						backgroundColor: 'var(--ifm-color-primary)',
-						color: 'white',
-						border: 'none',
-						borderRadius: '8px',
-						fontSize: '1.1rem',
-						cursor: 'pointer',
-						margin: '1.5rem 0',
+						position: 'absolute',
+						top: '-50%',
+						left: '-50%',
+						width: '200%',
+						height: '200%',
+						background:
+							'radial-gradient(circle, rgba(108, 0, 148, 0.05) 0%, transparent 70%)',
+						pointerEvents: 'none',
+						zIndex: 1,
 					}}
-				>
-					登录 / 注册
-				</button>
-				<p style={{ fontSize: '0.9rem', opacity: '0.8' }}>
-					如果您是学生，请联系老师将您的邮箱添加到访问列表
-				</p>
+				/>
+
+				<div style={{ position: 'relative', zIndex: 2 }}>
+					<h2
+						style={{
+							fontSize: '1.8rem',
+							color: 'var(--ifm-color-primary)',
+							marginBottom: '1rem',
+							fontWeight: 'bold',
+						}}
+					>
+						🔒 Game Design 教学内容
+					</h2>
+					<p
+						style={{
+							fontSize: '1.1rem',
+							color: 'var(--ifm-color-baw)',
+							marginBottom: '2rem',
+							lineHeight: '1.6',
+						}}
+					>
+						为了保护学生隐私，此内容需要通过 Netlify Identity
+						验证身份。
+					</p>
+
+					{/* 美化的登录按钮 */}
+					<button
+						onClick={handleLogin}
+						className="auth-login-button"
+						style={{
+							position: 'relative',
+							padding: '1.2em 2.5em',
+							outline: 'none',
+							border: '1px solid #303030',
+							background: 'var(--ifm-botton1-background-color)',
+							color: 'rgb(200, 141, 255)',
+							textTransform: 'uppercase',
+							letterSpacing: '2px',
+							fontSize: '16px',
+							overflow: 'hidden',
+							transition: 'all 0.3s ease',
+							borderRadius: '20px',
+							cursor: 'pointer',
+							fontWeight: 'bold',
+							margin: '1.5rem 0',
+							boxShadow: '0 4px 15px rgba(108, 0, 148, 0.3)',
+						}}
+					>
+						{/* 装饰性span元素 */}
+						<span
+							style={{
+								position: 'absolute',
+								top: 0,
+								left: '-100%',
+								width: '100%',
+								height: '2px',
+								background:
+									'linear-gradient(90deg, transparent, #ae00ff)',
+								transition: 'left 0.7s',
+							}}
+						/>
+						<span
+							style={{
+								position: 'absolute',
+								bottom: 0,
+								right: '-100%',
+								width: '100%',
+								height: '2px',
+								background:
+									'linear-gradient(90deg, transparent, #001eff)',
+								transition: 'right 0.7s',
+								transitionDelay: '0.35s',
+							}}
+						/>
+						<span
+							style={{
+								position: 'absolute',
+								top: '-100%',
+								right: 0,
+								width: '2px',
+								height: '100%',
+								background:
+									'linear-gradient(180deg, transparent, #ae00ff)',
+								transition: 'top 0.7s',
+								transitionDelay: '0.17s',
+							}}
+						/>
+						<span
+							style={{
+								position: 'absolute',
+								bottom: '-100%',
+								left: 0,
+								width: '2px',
+								height: '100%',
+								background:
+									'linear-gradient(360deg, transparent, #001eff)',
+								transition: 'bottom 0.7s',
+								transitionDelay: '0.52s',
+							}}
+						/>
+						登录 / 注册
+					</button>
+
+					{/* 添加悬停效果的CSS */}
+					<style
+						dangerouslySetInnerHTML={{
+							__html: `
+							.auth-login-button:hover {
+								box-shadow: 0 0 20px #ae00ff, 0 0 40px #001eff, 0 0 80px #ae00ff;
+								transform: translateY(-2px);
+							}
+							.auth-login-button:hover span:nth-child(1) { left: 100%; }
+							.auth-login-button:hover span:nth-child(2) { right: 100%; }
+							.auth-login-button:hover span:nth-child(3) { top: 100%; }
+							.auth-login-button:hover span:nth-child(4) { bottom: 100%; }
+							.auth-login-button:active {
+								background: linear-gradient(to top right, #ae00af, #001eff);
+								color: #bfbfbf;
+								transform: translateY(0);
+							}
+						`,
+						}}
+					/>
+
+					<p
+						style={{
+							fontSize: '0.95rem',
+							color: 'var(--ifm-color-baw)',
+							opacity: 0.8,
+							marginTop: '1.5rem',
+						}}
+					>
+						如果您是学生，请联系老师将您的邮箱添加到访问列表
+					</p>
+				</div>
 			</div>
 		);
 	}
@@ -548,27 +835,74 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		<div>
 			<div
 				style={{
-					background: 'var(--ifm-color-primary)',
+					background:
+						'linear-gradient(135deg, var(--ifm-color-primary), var(--ifm-color-primary-light))',
 					color: 'white',
-					padding: '0.5rem 1rem',
-					borderRadius: '6px',
+					padding: '1rem 1.5rem',
+					borderRadius: '12px',
 					margin: '1rem 0',
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
+					boxShadow: '0 4px 20px rgba(108, 0, 148, 0.3)',
+					position: 'relative',
+					overflow: 'hidden',
 				}}
 			>
-				<span>✅ 已验证访问 - {displayName || '已登录'}</span>
+				{/* 装饰性背景元素 */}
+				<div
+					style={{
+						position: 'absolute',
+						top: '-50%',
+						right: '-20%',
+						width: '70%',
+						height: '200%',
+						background:
+							'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+						pointerEvents: 'none',
+						zIndex: 1,
+					}}
+				/>
+
+				<div
+					style={{
+						position: 'relative',
+						zIndex: 2,
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.5rem',
+					}}
+				>
+					<span style={{ fontSize: '1.2rem' }}>✅</span>
+					<span style={{ fontWeight: '500' }}>
+						已验证访问 - {displayName || '已登录'}
+					</span>
+				</div>
+
 				<button
 					onClick={handleLogout}
 					style={{
-						background: 'transparent',
-						border: '1px solid white',
+						position: 'relative',
+						background: 'rgba(255, 255, 255, 0.2)',
+						border: '1px solid rgba(255, 255, 255, 0.3)',
 						color: 'white',
-						padding: '0.3rem 0.8rem',
-						borderRadius: '4px',
+						padding: '0.5rem 1rem',
+						borderRadius: '8px',
 						cursor: 'pointer',
 						fontSize: '0.9rem',
+						fontWeight: '500',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+					}}
+					onMouseEnter={e => {
+						const target = e.target as HTMLButtonElement;
+						target.style.background = 'rgba(255, 255, 255, 0.3)';
+						target.style.transform = 'scale(1.05)';
+					}}
+					onMouseLeave={e => {
+						const target = e.target as HTMLButtonElement;
+						target.style.background = 'rgba(255, 255, 255, 0.2)';
+						target.style.transform = 'scale(1)';
 					}}
 				>
 					登出
