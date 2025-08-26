@@ -51,16 +51,20 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				'iframe[id="netlify-identity-widget"]'
 			);
 
-			// 如果有多个 iframe，删除多余的
+			// 如果有多个 iframe，隐藏多余的而不是删除
 			if (widgets.length > 1) {
 				for (let i = 0; i < widgets.length - 1; i++) {
 					try {
-						const widget = widgets[i];
-						if (widget && widget.parentElement) {
-							widget.parentElement.removeChild(widget);
+						const widget = widgets[i] as HTMLElement;
+						if (widget) {
+							// 隐藏而不是删除
+							widget.style.display = 'none !important';
+							widget.style.pointerEvents = 'none';
+							widget.style.zIndex = '-9999';
+							widget.style.visibility = 'hidden';
 						}
 					} catch (e) {
-						console.warn('Failed to remove duplicate iframe:', e);
+						console.warn('Failed to hide duplicate iframe:', e);
 					}
 				}
 			}
@@ -219,18 +223,22 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 									'iframe[id="netlify-identity-widget"]'
 								);
 
-								// 保留最后一个widget，删除其他的
+								// 保留最后一个widget，隐藏其他的而不是删除
 								for (let i = 0; i < widgets.length - 1; i++) {
 									try {
-										const widget = widgets[i];
-										if (widget && widget.parentElement) {
-											widget.parentElement.removeChild(
-												widget
-											);
+										const widget = widgets[
+											i
+										] as HTMLElement;
+										if (widget) {
+											widget.style.display =
+												'none !important';
+											widget.style.pointerEvents = 'none';
+											widget.style.zIndex = '-9999';
+											widget.style.visibility = 'hidden';
 										}
 									} catch (e) {
 										console.warn(
-											'Failed to remove widget:',
+											'Failed to hide widget:',
 											e
 										);
 									}
@@ -507,46 +515,44 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						return;
 					}
 				} else if (widgets.length > 1) {
-					// 清理多余的 iframe
+					// 隐藏多余的 iframe 而不是删除
 					for (let i = 0; i < widgets.length - 1; i++) {
 						try {
-							const widget = widgets[i];
-							if (widget && widget.parentElement) {
-								widget.parentElement.removeChild(widget);
+							const widget = widgets[i] as HTMLElement;
+							if (widget) {
+								widget.style.display = 'none !important';
+								widget.style.pointerEvents = 'none';
+								widget.style.zIndex = '-9999';
+								widget.style.visibility = 'hidden';
 							}
 						} catch (e) {
-							console.warn(
-								'Failed to remove duplicate iframe:',
-								e
-							);
+							console.warn('Failed to hide duplicate iframe:', e);
 						}
 					}
 				}
 
-				// 重置唯一 iframe 的样式，让 Netlify Identity 重新控制
-				const widget = document.querySelector(
-					'iframe[id="netlify-identity-widget"]'
-				) as HTMLElement | null;
-				if (widget) {
-					widget.style.display = 'none';
-					widget.style.pointerEvents = 'none';
-					widget.style.zIndex = '-9999';
-					widget.style.visibility = 'hidden';
-				}
+				// 隐藏所有现有的iframe，让Netlify Identity来管理显示状态
+				widgets.forEach(widget => {
+					try {
+						const htmlWidget = widget as HTMLElement;
+						if (htmlWidget && htmlWidget.style.display !== 'none') {
+							htmlWidget.style.display = 'none';
+							htmlWidget.style.pointerEvents = 'none';
+							htmlWidget.style.zIndex = '-9999';
+							htmlWidget.style.visibility = 'hidden';
+						}
+					} catch (e) {
+						console.warn('Failed to hide widget:', e);
+					}
+				});
 
 				widgetOpenRef.current = true;
-
 				window.netlifyIdentity.open();
 			} catch (error) {
 				console.error('登录失败:', error);
 				// 如果出错，重置状态
 				widgetOpenRef.current = false;
-
-				// 尝试重新初始化和打开
-				if (window.netlifyIdentity.init) {
-					window.netlifyIdentity.init();
-					window.netlifyIdentity.open();
-				}
+				console.log('Login failed, you can try again');
 			}
 		} else {
 			console.error('Netlify Identity 未加载');
