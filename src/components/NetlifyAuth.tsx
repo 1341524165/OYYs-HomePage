@@ -90,8 +90,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
 					'[class*="netlify"][style*="position: fixed"], ' +
 					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="display: block !important"]'
+					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"])'
 			);
 
 			problematicElements.forEach(el => {
