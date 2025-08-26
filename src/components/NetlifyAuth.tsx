@@ -12,7 +12,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
-	const cleanupEnabledRef = useRef(true);
 
 	// 统一的显示名计算
 	const computeDisplayName = (u: any): string => {
@@ -27,7 +26,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	};
 
-	// 在登录/初始化后短暂轮询，直到拿到完整的 user（包含 email 或 name）
+	// temporarily refresh user until the user is fully loaded,,
 	const refreshUserWithRetries = (retries: number = 20) => {
 		try {
 			const u = window.netlifyIdentity?.currentUser();
@@ -44,26 +43,37 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// 立即清理可能存在的残留覆盖层
+		// 清理残留覆盖层，但保留核心组件
 		const cleanupOverlays = () => {
-			if (widgetOpenRef.current || !cleanupEnabledRef.current) return;
-			const overlays = document.querySelectorAll(
-				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"], iframe[title*="identity"]'
+			if (widgetOpenRef.current) return;
+
+			// 只清理可能阻塞的iframe和覆盖层，保留核心widget
+			const problematicElements = document.querySelectorAll(
+				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
+					'[class*="netlify"][style*="position: fixed"], ' +
+					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"])'
 			);
-			overlays.forEach(el => {
-				if ((el as HTMLElement).id === 'netlify-identity-widget') {
-					const htmlEl = el as HTMLElement;
-					htmlEl.style.display = 'none';
-					htmlEl.style.pointerEvents = 'none';
-					htmlEl.style.zIndex = '-9999';
-				} else {
-					el.parentElement?.removeChild(el);
-				}
+
+			problematicElements.forEach(el => {
+				try {
+					if (el.parentElement) {
+						el.parentElement.removeChild(el);
+					}
+				} catch {}
 			});
+
+			// 重置body样式
 			document.body.style.overflow = '';
 			document.body.style.pointerEvents = '';
 			document.documentElement.style.overflow = '';
 			document.documentElement.style.pointerEvents = '';
+
+			// 确保widget可见且可交互
+			const widget = document.getElementById('netlify-identity-widget');
+			if (widget) {
+				widget.style.pointerEvents = '';
+				widget.style.zIndex = '';
+			}
 		};
 
 		cleanupOverlays();
@@ -77,16 +87,19 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			if (window.netlifyIdentity) {
 				window.netlifyIdentity.init();
 
+				// 初始化：有用户则设置
 				window.netlifyIdentity.on('init', (u: any) => {
 					const resolved = u || window.netlifyIdentity.currentUser();
 					setUser(resolved);
 					setDisplayName(computeDisplayName(resolved));
 					setLoading(false);
+					// 若显示名为空，短暂轮询补齐
 					if (!computeDisplayName(resolved)) {
 						refreshUserWithRetries();
 					}
 				});
 
+				// 兜底获取当前用户
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
 				setDisplayName(computeDisplayName(currentUser));
@@ -97,20 +110,19 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
-					cleanupEnabledRef.current = false;
 				});
 				window.netlifyIdentity.on('close', () => {
 					widgetOpenRef.current = false;
-					cleanupEnabledRef.current = true;
 					cleanupOverlays();
 				});
 
+				// 登录：先用事件里的数据立即渲染显示名，再刷新
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
 					setError('');
 					widgetOpenRef.current = false;
-					cleanupEnabledRef.current = true;
 					setUser(loggedIn);
 					setDisplayName(computeDisplayName(loggedIn));
+					// 继续轮询，直到拿到完整的 user
 					refreshUserWithRetries();
 					setTimeout(() => {
 						try {
@@ -125,7 +137,6 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					setDisplayName('');
 					setError('');
 					widgetOpenRef.current = false;
-					cleanupEnabledRef.current = true;
 					cleanupOverlays();
 				});
 
@@ -144,17 +155,15 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		document.head.appendChild(script);
 
 		const intervalCleanup = setInterval(() => {
-			if (!widgetOpenRef.current && cleanupEnabledRef.current)
-				cleanupOverlays();
+			if (!widgetOpenRef.current) cleanupOverlays();
 		}, 1500);
 
 		const handleGlobalClick = () => {
-			if (!widgetOpenRef.current && cleanupEnabledRef.current)
-				cleanupOverlays();
+			if (!widgetOpenRef.current) cleanupOverlays();
 		};
 
 		const timer = setTimeout(() => {
-			document.addEventListener('click', handleGlobalClick, false);
+			document.addEventListener('click', handleGlobalClick, true);
 		}, 2000);
 
 		return () => {
@@ -163,24 +172,38 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			}
 			clearTimeout(timer);
 			clearInterval(intervalCleanup);
-			document.removeEventListener('click', handleGlobalClick, false);
+			document.removeEventListener('click', handleGlobalClick, true);
 		};
 	}, []);
 
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
-			widgetOpenRef.current = true;
-			cleanupEnabledRef.current = false; // 暂停清理，避免刚打开就被移除
 			try {
-				window.netlifyIdentity.open('login');
-			} catch {
-				// 兜底重试
-				setTimeout(() => {
-					try {
-						window.netlifyIdentity.open('login');
-					} catch {}
-				}, 100);
+				// 确保widget可用
+				const widget = document.getElementById(
+					'netlify-identity-widget'
+				);
+				if (widget) {
+					widget.style.display = '';
+					widget.style.pointerEvents = '';
+					widget.style.zIndex = '';
+				}
+
+				widgetOpenRef.current = true;
+				window.netlifyIdentity.open();
+			} catch (error) {
+				console.error('登录失败:', error);
+				// 尝试重新初始化
+				if (window.netlifyIdentity.init) {
+					window.netlifyIdentity.init();
+					setTimeout(() => {
+						widgetOpenRef.current = true;
+						window.netlifyIdentity.open();
+					}, 500);
+				}
 			}
+		} else {
+			console.error('Netlify Identity 未加载');
 		}
 	};
 
