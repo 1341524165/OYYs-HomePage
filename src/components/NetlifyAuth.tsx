@@ -133,6 +133,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 					// 初始化：有用户则设置
 					window.netlifyIdentity.on('init', (u: any) => {
+						console.log(
+							'Netlify Identity initialized with user:',
+							u
+						);
 						const resolved =
 							u || window.netlifyIdentity.currentUser();
 						setUser(resolved);
@@ -144,14 +148,20 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						}
 					});
 
-					// 兜底获取当前用户
-					const currentUser = window.netlifyIdentity.currentUser();
-					setUser(currentUser);
-					setDisplayName(computeDisplayName(currentUser));
-					setLoading(false);
-					if (currentUser && !computeDisplayName(currentUser)) {
-						refreshUserWithRetries();
-					}
+					// 延迟检查当前用户状态，确保Netlify Identity完全初始化
+					setTimeout(() => {
+						const currentUser =
+							window.netlifyIdentity.currentUser();
+						console.log('Current user after init:', currentUser);
+						if (currentUser) {
+							setUser(currentUser);
+							setDisplayName(computeDisplayName(currentUser));
+							if (!computeDisplayName(currentUser)) {
+								refreshUserWithRetries();
+							}
+						}
+						setLoading(false);
+					}, 500);
 
 					window.netlifyIdentity.on('open', () => {
 						widgetOpenRef.current = true;
@@ -188,8 +198,14 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						cleanupOverlays();
 
 						console.log(
-							'Logged out, states reset but Netlify Identity styles preserved'
+							'Logged out, will refresh page to reset all states...'
 						);
+
+						// 刷新页面，确保Netlify Identity状态完全重置
+						// 登录状态会通过localStorage自动恢复
+						setTimeout(() => {
+							window.location.reload();
+						}, 200);
 					});
 
 					window.netlifyIdentity.on('error', (err: any) => {
@@ -219,19 +235,39 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			setUser(currentUser);
 			setDisplayName(computeDisplayName(currentUser));
 			setLoading(false);
-		} else if (existingScript && !initCompletedRef.current) {
-			// 脚本存在但还没初始化，等待初始化完成
-			const checkInit = () => {
-				if (window.netlifyIdentity) {
-					const currentUser = window.netlifyIdentity.currentUser();
-					setUser(currentUser);
-					setDisplayName(computeDisplayName(currentUser));
-					setLoading(false);
-				} else {
-					setTimeout(checkInit, 100);
-				}
-			};
-			setTimeout(checkInit, 100);
+		} else if (existingScript) {
+			// 脚本已存在，等待Netlify Identity完全初始化
+			// 页面刷新后可能需要更长时间来恢复状态
+			setTimeout(() => {
+				const checkInit = (retries: number = 10) => {
+					if (window.netlifyIdentity && retries > 0) {
+						const currentUser =
+							window.netlifyIdentity.currentUser();
+						console.log(
+							'Checking current user after page refresh:',
+							currentUser
+						);
+						if (currentUser) {
+							setUser(currentUser);
+							setDisplayName(computeDisplayName(currentUser));
+							setLoading(false);
+							if (!computeDisplayName(currentUser)) {
+								refreshUserWithRetries();
+							}
+						} else {
+							// 继续等待
+							setTimeout(() => checkInit(retries - 1), 200);
+						}
+					} else {
+						// 初始化完成但没有用户或超时
+						setLoading(false);
+						console.log(
+							'Netlify Identity init complete, no active user session'
+						);
+					}
+				};
+				checkInit();
+			}, 300);
 		}
 
 		// 持续监控和清理可能出现的阻挡元素
