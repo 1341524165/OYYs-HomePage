@@ -43,8 +43,22 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// 使用内置的 Netlify Identity 行为，不做任何 iframe 覆盖层清理
-		const cleanupOverlays = () => {};
+		// 极简清理：隐藏 widget 并恢复页面交互（不删除节点）
+		const cleanupOverlays = () => {
+			if (widgetOpenRef.current) return;
+			const widget = document.getElementById(
+				'netlify-identity-widget'
+			) as HTMLElement | null;
+			if (widget) {
+				widget.style.display = 'none';
+				widget.style.pointerEvents = 'none';
+				widget.style.zIndex = '-9999';
+			}
+			document.body.style.overflow = '';
+			document.body.style.pointerEvents = '';
+			document.documentElement.style.overflow = '';
+			document.documentElement.style.pointerEvents = '';
+		};
 
 		const script = document.createElement('script');
 		script.src =
@@ -81,6 +95,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				});
 				window.netlifyIdentity.on('close', () => {
 					widgetOpenRef.current = false;
+					cleanupOverlays();
 				});
 
 				// 登录：先用事件里的数据立即渲染显示名，再刷新
