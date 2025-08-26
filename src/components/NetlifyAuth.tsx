@@ -8,7 +8,6 @@ declare global {
 
 const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState<any>(null);
-	const [displayName, setDisplayName] = useState<string>('');
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
@@ -16,12 +15,22 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	// 统一的显示名计算
 	const getDisplayName = (u: any): string => {
 		if (!u) return '';
-		return (
+
+		// 临时调试：查看用户对象结构
+		console.log('用户对象:', u);
+		console.log('user_metadata:', u?.user_metadata);
+		console.log('email:', u?.email);
+
+		const name =
 			u?.user_metadata?.full_name ||
 			u?.user_metadata?.fullName ||
+			u?.user_metadata?.name ||
 			u?.email ||
-			''
-		);
+			u?.id ||
+			'';
+
+		console.log('最终显示名:', name);
+		return name;
 	};
 
 	useEffect(() => {
@@ -66,16 +75,13 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				// 初始化：有用户则设置
 				window.netlifyIdentity.on('init', (u: any) => {
-					const initUser = u || window.netlifyIdentity.currentUser();
-					setUser(initUser);
-					setDisplayName(getDisplayName(initUser));
+					setUser(u || window.netlifyIdentity.currentUser());
 					setLoading(false);
 				});
 
 				// 检查当前用户（作为兜底）
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
-				setDisplayName(getDisplayName(currentUser));
 				setLoading(false);
 
 				// 打开/关闭事件：仅在关闭后做清理
@@ -89,29 +95,25 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				// 监听登录事件
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
-					// 使用事件提供的用户，随后再刷新一次，确保带有完整字段
-					setUser(loggedIn);
-					setDisplayName(getDisplayName(loggedIn));
 					setError('');
 					widgetOpenRef.current = false;
+
+					// 延迟设置用户，确保数据完整加载
 					setTimeout(() => {
 						try {
 							window.netlifyIdentity.close();
+							// 优先使用刷新后的数据，回退到登录事件数据
 							const refreshed =
 								window.netlifyIdentity.currentUser();
-							if (refreshed) {
-								setUser(refreshed);
-								setDisplayName(getDisplayName(refreshed));
-							}
+							setUser(refreshed || loggedIn);
 							cleanupOverlays();
 						} catch {}
-					}, 200);
+					}, 300);
 				});
 
 				// 监听登出事件
 				window.netlifyIdentity.on('logout', () => {
 					setUser(null);
-					setDisplayName('');
 					setError('');
 					widgetOpenRef.current = false;
 					cleanupOverlays();
@@ -286,10 +288,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					alignItems: 'center',
 				}}
 			>
-				<span>
-					✅ 已验证访问 -{' '}
-					{displayName || getDisplayName(user) || '已登录'}
-				</span>
+				<span>✅ 已验证访问 - {getDisplayName(user) || '已登录'}</span>
 				<button
 					onClick={handleLogout}
 					style={{
