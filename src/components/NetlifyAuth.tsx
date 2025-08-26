@@ -26,6 +26,22 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	};
 
+	// temporarily refresh user until the user is fully loaded,,
+	const refreshUserWithRetries = (retries: number = 20) => {
+		try {
+			const u = window.netlifyIdentity?.currentUser();
+			const name = computeDisplayName(u);
+			if (u && name) {
+				setUser(u);
+				setDisplayName(name);
+				return;
+			}
+		} catch {}
+		if (retries > 0) {
+			setTimeout(() => refreshUserWithRetries(retries - 1), 150);
+		}
+	};
+
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
@@ -66,6 +82,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					setUser(resolved);
 					setDisplayName(computeDisplayName(resolved));
 					setLoading(false);
+					// 若显示名为空，短暂轮询补齐
+					if (!computeDisplayName(resolved)) {
+						refreshUserWithRetries();
+					}
 				});
 
 				// 兜底获取当前用户
@@ -73,6 +93,9 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				setUser(currentUser);
 				setDisplayName(computeDisplayName(currentUser));
 				setLoading(false);
+				if (currentUser && !computeDisplayName(currentUser)) {
+					refreshUserWithRetries();
+				}
 
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
@@ -86,17 +109,13 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
 					setError('');
 					widgetOpenRef.current = false;
-					setDisplayName(computeDisplayName(loggedIn));
 					setUser(loggedIn);
+					setDisplayName(computeDisplayName(loggedIn));
+					// 继续轮询，直到拿到完整的 user
+					refreshUserWithRetries();
 					setTimeout(() => {
 						try {
 							window.netlifyIdentity.close();
-							const refreshed =
-								window.netlifyIdentity.currentUser();
-							if (refreshed) {
-								setUser(refreshed);
-								setDisplayName(computeDisplayName(refreshed));
-							}
 							cleanupOverlays();
 						} catch {}
 					}, 300);
