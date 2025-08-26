@@ -12,6 +12,17 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
 
+	// 统一的显示名计算
+	const getDisplayName = (u: any): string => {
+		if (!u) return '';
+		return (
+			u?.user_metadata?.full_name ||
+			u?.user_metadata?.fullName ||
+			u?.email ||
+			''
+		);
+	};
+
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
@@ -52,7 +63,13 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			if (window.netlifyIdentity) {
 				window.netlifyIdentity.init();
 
-				// 检查当前用户
+				// 初始化：有用户则设置
+				window.netlifyIdentity.on('init', (u: any) => {
+					setUser(u || window.netlifyIdentity.currentUser());
+					setLoading(false);
+				});
+
+				// 检查当前用户（作为兜底）
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
 				setLoading(false);
@@ -67,13 +84,19 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				});
 
 				// 监听登录事件
-				window.netlifyIdentity.on('login', user => {
-					setUser(user);
+				window.netlifyIdentity.on('login', (loggedIn: any) => {
+					// 使用事件提供的用户，随后再刷新一次，确保带有完整字段
+					setUser(loggedIn);
 					setError('');
 					widgetOpenRef.current = false;
 					setTimeout(() => {
-						window.netlifyIdentity.close();
-						cleanupOverlays();
+						try {
+							window.netlifyIdentity.close();
+							const refreshed =
+								window.netlifyIdentity.currentUser();
+							if (refreshed) setUser(refreshed);
+							cleanupOverlays();
+						} catch {}
 					}, 200);
 				});
 
@@ -86,7 +109,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				});
 
 				// 监听错误事件
-				window.netlifyIdentity.on('error', err => {
+				window.netlifyIdentity.on('error', (err: any) => {
 					setError('认证服务出现问题，请稍后重试');
 					setLoading(false);
 				});
@@ -254,10 +277,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					alignItems: 'center',
 				}}
 			>
-				<span>
-					✅ 已验证访问 -{' '}
-					{user.user_metadata?.full_name || user.email}
-				</span>
+				<span>✅ 已验证访问 - {getDisplayName(user) || '已登录'}</span>
 				<button
 					onClick={handleLogout}
 					style={{
