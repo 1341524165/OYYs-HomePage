@@ -236,17 +236,17 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 									}
 								}
 
-								// // 隐藏最后一个（保留的）widget
-								// const lastWidget = widgets[
-								// 	widgets.length - 1
-								// ] as HTMLElement;
-								// if (lastWidget) {
-								// 	lastWidget.style.display =
-								// 		'none !important';
-								// 	lastWidget.style.pointerEvents = 'none';
-								// 	lastWidget.style.zIndex = '-9999';
-								// 	lastWidget.style.visibility = 'hidden';
-								// }
+								// 隐藏最后一个（保留的）widget
+								const lastWidget = widgets[
+									widgets.length - 1
+								] as HTMLElement;
+								if (lastWidget) {
+									lastWidget.style.display =
+										'none !important';
+									lastWidget.style.pointerEvents = 'none';
+									lastWidget.style.zIndex = '-9999';
+									lastWidget.style.visibility = 'hidden';
+								}
 
 								// 清理其他可能的 modal/overlay 元素
 								const overlays = document.querySelectorAll(
