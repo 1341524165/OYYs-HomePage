@@ -32,15 +32,15 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					};
 				case 'success':
 					return {
-						borderColor: 'var(--ifm-color-primary)',
-						boxShadowColor: 'rgba(108, 0, 148, 0.3)',
+						borderColor: 'var(--ifm-color-primary-lighter)',
+						boxShadowColor: 'rgba(124, 0, 170, 0.2)',
 						backgroundGradient:
-							'radial-gradient(circle, rgba(108, 0, 148, 0.08) 0%, transparent 70%)',
+							'radial-gradient(circle, rgba(108, 0, 148, 0.05) 0%, transparent 70%)',
 					};
 				default:
 					return {
-						borderColor: 'var(--ifm-color-primary)',
-						boxShadowColor: 'rgba(108, 0, 148, 0.15)',
+						borderColor: 'var(--ifm-color-primary-lighter)',
+						boxShadowColor: 'rgba(124, 0, 170, 0.15)',
 						backgroundGradient:
 							'radial-gradient(circle, rgba(108, 0, 148, 0.03) 0%, transparent 70%)',
 					};
@@ -59,7 +59,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					background: 'var(--ifm-hero-background-color)',
 					border: `2px solid ${variantStyles.borderColor}`,
 					borderRadius: '24px',
-					boxShadow: `0 8px 32px ${variantStyles.boxShadowColor}`,
+					boxShadow: `0 4px 20px ${variantStyles.boxShadowColor}`,
 					position: 'relative',
 					overflow: 'hidden',
 					transition: 'all 0.3s ease',
@@ -86,12 +86,12 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						position: 'absolute',
 						top: '20px',
 						right: '20px',
-						width: '60px',
-						height: '60px',
+						width: '50px',
+						height: '50px',
 						background: `conic-gradient(from 0deg, ${variantStyles.borderColor}, transparent, ${variantStyles.borderColor})`,
 						borderRadius: '50%',
-						opacity: 0.1,
-						animation: 'rotate-slow 15s linear infinite',
+						opacity: 0.06,
+						animation: 'rotate-slow 20s linear infinite',
 						zIndex: 1,
 					}}
 				/>
@@ -101,11 +101,11 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						position: 'absolute',
 						bottom: '20px',
 						left: '20px',
-						width: '40px',
-						height: '40px',
+						width: '35px',
+						height: '35px',
 						background: `linear-gradient(45deg, ${variantStyles.borderColor}, transparent)`,
-						opacity: 0.1,
-						animation: 'pulse-gentle 4s ease-in-out infinite',
+						opacity: 0.06,
+						animation: 'pulse-gentle 6s ease-in-out infinite',
 						zIndex: 1,
 					}}
 				/>
@@ -141,8 +141,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 								50% { opacity: 0.2; transform: scale(1.1); }
 							}
 							.auth-container:hover {
-								transform: translateY(-2px);
-								box-shadow: 0 12px 40px ${variantStyles.boxShadowColor};
+								transform: translateY(-1px);
+								box-shadow: 0 6px 24px ${variantStyles.boxShadowColor};
 							}
 						`,
 					}}
@@ -735,8 +735,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						dangerouslySetInnerHTML={{
 							__html: `
 							button:hover {
-								transform: translateY(-2px);
-								box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+								transform: translateY(-1px);
+								box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);
 							}
 							button:hover span:nth-child(1) { left: 100%; }
 							button:hover span:nth-child(2) { right: 100%; }
@@ -862,8 +862,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						dangerouslySetInnerHTML={{
 							__html: `
 							.auth-login-button:hover {
-								box-shadow: 0 0 20px #ae00ff, 0 0 40px #001eff, 0 0 80px #ae00ff;
-								transform: translateY(-2px);
+								box-shadow: 0 0 15px rgba(174, 0, 255, 0.4), 0 0 25px rgba(0, 30, 255, 0.3);
+								transform: translateY(-1px);
 							}
 							.auth-login-button:hover span:nth-child(1) { left: 100%; }
 							.auth-login-button:hover span:nth-child(2) { right: 100%; }
@@ -907,7 +907,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
-					boxShadow: '0 6px 24px rgba(108, 0, 148, 0.3)',
+					boxShadow: '0 4px 16px rgba(108, 0, 148, 0.25)',
 					position: 'relative',
 					overflow: 'hidden',
 					transition: 'all 0.3s ease',
@@ -922,7 +922,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						width: '70%',
 						height: '200%',
 						background:
-							'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+							'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%)',
 						pointerEvents: 'none',
 						zIndex: 1,
 						animation: 'gentle-float 15s ease-in-out infinite',
@@ -937,7 +937,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						left: '20px',
 						width: '30px',
 						height: '30px',
-						background: 'rgba(255, 255, 255, 0.1)',
+						background: 'rgba(255, 255, 255, 0.05)',
 						borderRadius: '50%',
 						animation: 'pulse-gentle 3s ease-in-out infinite',
 						zIndex: 1,
