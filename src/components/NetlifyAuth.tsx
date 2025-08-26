@@ -7,23 +7,49 @@ declare global {
 }
 
 const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
+			// 清理所有 Netlify 相关元素
 			const overlays = document.querySelectorAll(
-				'[id*="netlify"], [class*="netlify"]'
+				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"]'
 			);
 			overlays.forEach(el => {
-				if (el.id !== 'netlify-identity-widget') {
+				if (el.id === 'netlify-identity-widget') {
+					// 主 widget 隐藏但不删除
+					const htmlEl = el as HTMLElement;
+					htmlEl.style.display = 'none';
+					htmlEl.style.pointerEvents = 'none';
+					htmlEl.style.zIndex = '-9999';
+				} else {
+					// 删除其他所有元素，包括 iframe
 					el.remove();
 				}
 			});
+
+			// 特别处理可能的隐藏 iframe
+			const iframes = document.querySelectorAll('iframe');
+			iframes.forEach(iframe => {
+				const style = window.getComputedStyle(iframe);
+				if (
+					style.position === 'fixed' &&
+					style.width === '100%' &&
+					style.height === '100%' &&
+					(style.top === '0px' || style.left === '0px')
+				) {
+					iframe.remove();
+				}
+			});
+
+			// 恢复页面交互
 			document.body.style.overflow = '';
 			document.body.style.pointerEvents = '';
+			document.documentElement.style.overflow = '';
+			document.documentElement.style.pointerEvents = '';
 		};
 
 		cleanupOverlays();
@@ -50,44 +76,15 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					// 强制清理覆盖层
 					setTimeout(() => {
 						window.netlifyIdentity.close();
-						// 清理所有可能的覆盖层
-						const overlays = document.querySelectorAll(
-							'[id*="netlify"], [class*="netlify"]'
-						);
-						overlays.forEach(el => {
-							if (el.id !== 'netlify-identity-widget') {
-								el.remove();
-							}
-						});
-						// 强制隐藏主 widget
-						const widget = document.querySelector(
-							'#netlify-identity-widget'
-						);
-						if (widget) {
-							widget.style.display = 'none';
-							widget.style.pointerEvents = 'none';
-						}
-						// 恢复页面交互
-						document.body.style.overflow = '';
-						document.body.style.pointerEvents = '';
-					}, 100);
+						cleanupOverlays();
+					}, 200);
 				});
 
 				// 监听登出事件
 				window.netlifyIdentity.on('logout', () => {
 					setUser(null);
 					setError('');
-					// 清理覆盖层
-					const overlays = document.querySelectorAll(
-						'[id*="netlify"], [class*="netlify"]'
-					);
-					overlays.forEach(el => {
-						if (el.id !== 'netlify-identity-widget') {
-							el.remove();
-						}
-					});
-					document.body.style.overflow = '';
-					document.body.style.pointerEvents = '';
+					cleanupOverlays();
 				});
 
 				// 监听错误事件
@@ -105,6 +102,29 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		document.head.appendChild(script);
 
+		// 定期清理任务，确保没有遗漏的覆盖层
+		const intervalCleanup = setInterval(() => {
+			// 检查是否有阻止交互的全屏元素
+			const problematicElements =
+				document.querySelectorAll('iframe, div');
+			problematicElements.forEach(el => {
+				const style = window.getComputedStyle(el);
+				if (
+					style.position === 'fixed' &&
+					style.width === '100%' &&
+					style.height === '100%' &&
+					style.top === '0px' &&
+					style.left === '0px' &&
+					style.zIndex !== '-9999' &&
+					!el.closest('.navbar') &&
+					!el.closest('[data-theme]')
+				) {
+					console.log('发现并移除阻止交互的元素:', el);
+					el.remove();
+				}
+			});
+		}, 1000);
+
 		// 添加全局点击监听器作为最后保障
 		const handleGlobalClick = () => {
 			cleanupOverlays();
@@ -120,6 +140,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				document.head.removeChild(script);
 			}
 			clearTimeout(timer);
+			clearInterval(intervalCleanup);
 			document.removeEventListener('click', handleGlobalClick, true);
 		};
 	}, []);
