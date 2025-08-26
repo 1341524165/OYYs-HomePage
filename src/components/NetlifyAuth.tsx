@@ -12,6 +12,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
+	const scriptLoadedRef = useRef(false);
+	const initCompletedRef = useRef(false);
 
 	// 统一的显示名计算
 	const computeDisplayName = (u: any): string => {
@@ -43,34 +45,43 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// 清理残留覆盖层，但保留核心组件
-		const cleanupOverlays = () => {
-			if (widgetOpenRef.current) return;
-
-			// 不删除iframe，而是通过CSS控制它们的可见性
-			// 仅显示最后一个（活动）widget，其他隐藏
+		// 清理所有重复的 Netlify Identity iframe，只保留一个
+		const cleanupDuplicateIframes = () => {
 			const widgets = document.querySelectorAll(
 				'iframe[id="netlify-identity-widget"]'
 			);
 
-			// 将所有widget设置为不可见且不阻挡点击
-			widgets.forEach((widget, index) => {
-				const htmlWidget = widget as HTMLElement;
-				// 保留最后一个widget作为活跃的，其他的完全隐藏
-				if (index === widgets.length - 1) {
-					htmlWidget.style.display = 'none';
-					htmlWidget.style.pointerEvents = 'none';
-					htmlWidget.style.zIndex = '-9999';
-				} else {
-					// 完全隐藏其他widget
-					htmlWidget.style.display = 'none';
-					htmlWidget.style.pointerEvents = 'none';
-					htmlWidget.style.zIndex = '-9999';
-					htmlWidget.style.visibility = 'hidden';
+			// 如果有多个 iframe，删除多余的
+			if (widgets.length > 1) {
+				for (let i = 0; i < widgets.length - 1; i++) {
+					try {
+						const widget = widgets[i];
+						if (widget && widget.parentElement) {
+							widget.parentElement.removeChild(widget);
+						}
+					} catch (e) {
+						console.warn('Failed to remove duplicate iframe:', e);
+					}
 				}
-			});
+			}
 
-			// 经典防御式.. - 清理其他可能阻塞的元素
+			// 确保唯一的 iframe 处于正确状态
+			const remainingWidget = document.querySelector(
+				'iframe[id="netlify-identity-widget"]'
+			) as HTMLElement;
+			if (remainingWidget && !widgetOpenRef.current) {
+				remainingWidget.style.display = 'none';
+				remainingWidget.style.pointerEvents = 'none';
+				remainingWidget.style.zIndex = '-9999';
+				remainingWidget.style.visibility = 'hidden';
+			}
+		};
+
+		// 清理其他可能阻塞的元素
+		const cleanupOverlays = () => {
+			if (widgetOpenRef.current) return;
+
+			// 清理其他可能阻塞的元素
 			const problematicElements = document.querySelectorAll(
 				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
 					'[class*="netlify"][style*="position: fixed"], ' +
@@ -92,169 +103,275 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			document.documentElement.style.pointerEvents = '';
 		};
 
-		// cleanupOverlays();
+		cleanupDuplicateIframes();
+		cleanupOverlays();
 
-		const script = document.createElement('script');
-		script.src =
-			'https://identity.netlify.com/v1/netlify-identity-widget.js';
-		script.async = true;
+		// 检查是否已经加载过脚本
+		const existingScript = document.querySelector(
+			'script[src*="netlify-identity-widget.js"]'
+		);
 
-		script.onload = () => {
-			if (window.netlifyIdentity) {
-				window.netlifyIdentity.init();
+		let currentScript: HTMLScriptElement | null = null;
 
-				// 初始化：有用户则设置
-				window.netlifyIdentity.on('init', (u: any) => {
-					const resolved = u || window.netlifyIdentity.currentUser();
-					setUser(resolved);
-					setDisplayName(computeDisplayName(resolved));
+		if (!scriptLoadedRef.current && !existingScript) {
+			scriptLoadedRef.current = true;
+
+			currentScript = document.createElement('script');
+			currentScript.src =
+				'https://identity.netlify.com/v1/netlify-identity-widget.js';
+			currentScript.async = true;
+
+			currentScript.onload = () => {
+				if (window.netlifyIdentity && !initCompletedRef.current) {
+					initCompletedRef.current = true;
+					window.netlifyIdentity.init();
+
+					// 初始化：有用户则设置
+					window.netlifyIdentity.on('init', (u: any) => {
+						const resolved =
+							u || window.netlifyIdentity.currentUser();
+						setUser(resolved);
+						setDisplayName(computeDisplayName(resolved));
+						setLoading(false);
+						// 若显示名为空，短暂轮询补齐
+						if (!computeDisplayName(resolved)) {
+							refreshUserWithRetries();
+						}
+					});
+
+					// 兜底获取当前用户
+					const currentUser = window.netlifyIdentity.currentUser();
+					setUser(currentUser);
+					setDisplayName(computeDisplayName(currentUser));
 					setLoading(false);
-					// 若显示名为空，短暂轮询补齐
-					if (!computeDisplayName(resolved)) {
+					if (currentUser && !computeDisplayName(currentUser)) {
 						refreshUserWithRetries();
 					}
-				});
 
-				// 兜底获取当前用户
-				const currentUser = window.netlifyIdentity.currentUser();
-				setUser(currentUser);
-				setDisplayName(computeDisplayName(currentUser));
-				setLoading(false);
-				if (currentUser && !computeDisplayName(currentUser)) {
-					refreshUserWithRetries();
-				}
+					window.netlifyIdentity.on('open', () => {
+						widgetOpenRef.current = true;
+					});
+					window.netlifyIdentity.on('close', () => {
+						widgetOpenRef.current = false;
+						cleanupOverlays();
+					});
 
-				window.netlifyIdentity.on('open', () => {
-					widgetOpenRef.current = true;
-				});
-				window.netlifyIdentity.on('close', () => {
-					widgetOpenRef.current = false;
-					cleanupOverlays();
-				});
+					// 登录：先用事件里的数据立即渲染显示名，再刷新
+					window.netlifyIdentity.on('login', (loggedIn: any) => {
+						setError('');
+						widgetOpenRef.current = false;
+						setUser(loggedIn);
+						setDisplayName(computeDisplayName(loggedIn));
+						// 继续轮询，直到拿到完整的 user
+						refreshUserWithRetries();
 
-				// 登录：先用事件里的数据立即渲染显示名，再刷新
-				window.netlifyIdentity.on('login', (loggedIn: any) => {
-					setError('');
-					widgetOpenRef.current = false;
-					setUser(loggedIn);
-					setDisplayName(computeDisplayName(loggedIn));
-					// 继续轮询，直到拿到完整的 user
-					refreshUserWithRetries();
+						// 立即清理所有可能阻挡的元素
+						setTimeout(() => {
+							try {
+								window.netlifyIdentity.close();
+								cleanupOverlays();
 
-					// 立即清理所有可能阻挡的元素
-					setTimeout(() => {
-						try {
-							window.netlifyIdentity.close();
-							cleanupOverlays();
+								// 清理所有 netlify-identity-widget iframe，保留一个用于下次使用
+								const widgets = document.querySelectorAll(
+									'iframe[id="netlify-identity-widget"]'
+								);
 
-							// 只清理空的netlify-identity-widget iframe
-							const widgets = document.querySelectorAll(
-								'iframe[id="netlify-identity-widget"]'
-							);
-							widgets.forEach(iframe => {
-								try {
-									// 检查iframe内部是否有内容
-									const iframeDoc = (
-										iframe as HTMLIFrameElement
-									).contentDocument;
-									const iframeBody = iframeDoc?.body;
-
-									// 如果body为空或只有空白内容，则隐藏这个iframe
-									if (
-										!iframeBody ||
-										iframeBody.innerHTML.trim() === '' ||
-										iframeBody.children.length === 0
-									) {
-										const htmlIframe =
-											iframe as HTMLElement;
-										htmlIframe.style.display = 'none';
-										htmlIframe.style.pointerEvents = 'none';
-										htmlIframe.style.zIndex = '-9999';
+								if (widgets.length > 1) {
+									// 保留第一个，删除其他的
+									for (let i = 1; i < widgets.length; i++) {
+										try {
+											const widget = widgets[i];
+											if (
+												widget &&
+												widget.parentElement
+											) {
+												widget.parentElement.removeChild(
+													widget
+												);
+											}
+										} catch (e) {
+											console.warn(
+												'Failed to remove iframe:',
+												e
+											);
+										}
 									}
-								} catch (e) {
-									// 如果无法访问iframe内容（跨域限制），则跳过
 								}
-							});
 
-							// 重置所有可能被修改的样式
-							document.body.style.overflow = '';
-							document.body.style.pointerEvents = '';
-							document.documentElement.style.overflow = '';
-							document.documentElement.style.pointerEvents = '';
-						} catch {}
-					}, 300);
-				});
+								// 隐藏唯一的 iframe 以备下次使用
+								const remainingWidget = document.querySelector(
+									'iframe[id="netlify-identity-widget"]'
+								) as HTMLElement;
+								if (remainingWidget) {
+									remainingWidget.style.display = 'none';
+									remainingWidget.style.pointerEvents =
+										'none';
+									remainingWidget.style.zIndex = '-9999';
+									remainingWidget.style.visibility = 'hidden';
+								}
 
-				window.netlifyIdentity.on('logout', () => {
-					setUser(null);
-					setDisplayName('');
-					setError('');
-					widgetOpenRef.current = false;
-					cleanupOverlays();
-				});
+								// 重置所有可能被修改的样式
+								document.body.style.overflow = '';
+								document.body.style.pointerEvents = '';
+								document.documentElement.style.overflow = '';
+								document.documentElement.style.pointerEvents =
+									'';
+							} catch {}
+						}, 300);
+					});
 
-				window.netlifyIdentity.on('error', (err: any) => {
-					setError('认证服务出现问题，请稍后重试');
+					window.netlifyIdentity.on('logout', () => {
+						setUser(null);
+						setDisplayName('');
+						setError('');
+						widgetOpenRef.current = false;
+						cleanupDuplicateIframes();
+						cleanupOverlays();
+					});
+
+					window.netlifyIdentity.on('error', (err: any) => {
+						setError('认证服务出现问题，请稍后重试');
+						setLoading(false);
+					});
+				} else if (window.netlifyIdentity && initCompletedRef.current) {
+					// 如果脚本已经加载且初始化完成，直接获取当前用户状态
+					const currentUser = window.netlifyIdentity.currentUser();
+					setUser(currentUser);
+					setDisplayName(computeDisplayName(currentUser));
 					setLoading(false);
-				});
+				}
+			};
+
+			if (currentScript) {
+				currentScript.onerror = () => {
+					setError('无法加载认证服务');
+					setLoading(false);
+				};
+
+				document.head.appendChild(currentScript);
 			}
-		};
-
-		script.onerror = () => {
-			setError('无法加载认证服务');
+		} else if (window.netlifyIdentity && initCompletedRef.current) {
+			// 如果脚本已存在且已初始化，直接获取用户状态
+			const currentUser = window.netlifyIdentity.currentUser();
+			setUser(currentUser);
+			setDisplayName(computeDisplayName(currentUser));
 			setLoading(false);
-		};
+		} else if (existingScript && !initCompletedRef.current) {
+			// 脚本存在但还没初始化，等待初始化完成
+			const checkInit = () => {
+				if (window.netlifyIdentity) {
+					const currentUser = window.netlifyIdentity.currentUser();
+					setUser(currentUser);
+					setDisplayName(computeDisplayName(currentUser));
+					setLoading(false);
+				} else {
+					setTimeout(checkInit, 100);
+				}
+			};
+			setTimeout(checkInit, 100);
+		}
 
-		document.head.appendChild(script);
-
-		// 清理 background (遮罩层)
-		// 循环检查，如果认证弹窗没开，cleanupOverlays()
 		const intervalCleanup = setInterval(() => {
 			if (!widgetOpenRef.current) cleanupOverlays();
 		}, 1500);
 
-		// 定义一个全局点击事件处理函数，如果认证弹窗没开，也清理遮罩层
 		const handleGlobalClick = () => {
 			if (!widgetOpenRef.current) cleanupOverlays();
 		};
 
-		// 等2s再加一个点击事件监听，调用上面的全局点击处理函数
 		const timer = setTimeout(() => {
 			document.addEventListener('click', handleGlobalClick, true);
 		}, 2000);
 
-		// 返回一个清理函数，卸载时移除 script、定时器、事件监听
 		return () => {
-			if (document.head.contains(script)) {
-				document.head.removeChild(script);
+			if (currentScript && document.head.contains(currentScript)) {
+				document.head.removeChild(currentScript);
 			}
 			clearTimeout(timer);
 			clearInterval(intervalCleanup);
 			document.removeEventListener('click', handleGlobalClick, true);
+
+			// 组件卸载时彻底清理所有 iframe
+			const allWidgets = document.querySelectorAll(
+				'iframe[id="netlify-identity-widget"]'
+			);
+			allWidgets.forEach(widget => {
+				try {
+					if (widget.parentElement) {
+						widget.parentElement.removeChild(widget);
+					}
+				} catch (e) {
+					console.warn('Failed to remove widget on unmount:', e);
+				}
+			});
+
+			// 重置全局状态
+			scriptLoadedRef.current = false;
+			initCompletedRef.current = false;
 		};
 	}, []);
 
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
 			try {
-				// 重新激活所有netlify-identity-widget iframe
+				// 确保只有一个活跃的 iframe
 				const widgets = document.querySelectorAll(
 					'iframe[id="netlify-identity-widget"]'
 				);
-				widgets.forEach((widget, index) => {
-					const htmlWidget = widget as HTMLElement;
-					// 重置所有样式，让Netlify Identity重新控制
-					htmlWidget.style.display = '';
-					htmlWidget.style.pointerEvents = '';
-					htmlWidget.style.zIndex = '';
-					htmlWidget.style.visibility = '';
-				});
+
+				// 如果没有 iframe 或有多个，清理并重新初始化
+				if (widgets.length === 0) {
+					console.log('No iframe found, reinitializing...');
+					if (window.netlifyIdentity.init) {
+						window.netlifyIdentity.init();
+						setTimeout(() => {
+							widgetOpenRef.current = true;
+							window.netlifyIdentity.open();
+						}, 500);
+						return;
+					}
+				} else if (widgets.length > 1) {
+					// 清理多余的 iframe
+					for (let i = 0; i < widgets.length - 1; i++) {
+						try {
+							const widget = widgets[i];
+							if (widget && widget.parentElement) {
+								widget.parentElement.removeChild(widget);
+							}
+						} catch (e) {
+							console.warn(
+								'Failed to remove duplicate iframe:',
+								e
+							);
+						}
+					}
+				}
+
+				// 重置唯一 iframe 的样式，让 Netlify Identity 重新控制
+				const widget = document.querySelector(
+					'iframe[id="netlify-identity-widget"]'
+				) as HTMLElement | null;
+				if (widget) {
+					// 完全重置样式
+					widget.style.display = '';
+					widget.style.pointerEvents = '';
+					widget.style.zIndex = '';
+					widget.style.visibility = '';
+					widget.style.position = '';
+					widget.style.top = '';
+					widget.style.left = '';
+					widget.style.width = '';
+					widget.style.height = '';
+					widget.style.border = '';
+					widget.style.overflow = '';
+					widget.style.background = '';
+				}
 
 				widgetOpenRef.current = true;
 				window.netlifyIdentity.open();
 			} catch (error) {
 				console.error('登录失败:', error);
-				// 尝试重新初始化
+				// 如果出错，尝试重新初始化
 				if (window.netlifyIdentity.init) {
 					window.netlifyIdentity.init();
 					setTimeout(() => {
