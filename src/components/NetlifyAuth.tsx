@@ -90,7 +90,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
 					'[class*="netlify"][style*="position: fixed"], ' +
 					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"])'
+					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"]), ' +
+					'[style*="display: block !important"]'
 			);
 
 			problematicElements.forEach(el => {
@@ -188,125 +189,24 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 					window.netlifyIdentity.on('open', () => {
 						widgetOpenRef.current = true;
+						console.log('Netlify Identity widget opened');
 					});
 					window.netlifyIdentity.on('close', () => {
 						widgetOpenRef.current = false;
+						console.log('Netlify Identity widget closed');
 						cleanupOverlays();
 					});
 
 					// 登录：先用事件里的数据立即渲染显示名，再刷新
 					window.netlifyIdentity.on('login', (loggedIn: any) => {
 						setError('');
-						widgetOpenRef.current = false;
 						setUser(loggedIn);
 						setDisplayName(computeDisplayName(loggedIn));
 						// 继续轮询，直到拿到完整的 user
 						refreshUserWithRetries();
 
-						// 立即且强制清理所有可能阻挡的元素
-						const forceCleanup = () => {
-							try {
-								// 强制关闭 Netlify Identity modal
-								if (
-									window.netlifyIdentity &&
-									window.netlifyIdentity.close
-								) {
-									window.netlifyIdentity.close();
-								}
-
-								// 清理所有可能阻挡的元素
-								cleanupOverlays();
-
-								// 特别处理 netlify-identity-widget iframe
-								const widgets = document.querySelectorAll(
-									'iframe[id="netlify-identity-widget"]'
-								);
-
-								// 保留最后一个widget，隐藏其他的而不是删除
-								for (let i = 0; i < widgets.length - 1; i++) {
-									try {
-										const widget = widgets[
-											i
-										] as HTMLElement;
-										if (widget) {
-											widget.style.display =
-												'none !important';
-											widget.style.pointerEvents = 'none';
-											widget.style.zIndex = '-9999';
-											widget.style.visibility = 'hidden';
-										}
-									} catch (e) {
-										console.warn(
-											'Failed to hide widget:',
-											e
-										);
-									}
-								}
-
-								// 隐藏最后一个（保留的）widget
-								const lastWidget = widgets[
-									widgets.length - 1
-								] as HTMLElement;
-								if (lastWidget) {
-									lastWidget.style.display =
-										'none !important';
-									lastWidget.style.pointerEvents = 'none';
-									lastWidget.style.zIndex = '-9999';
-									lastWidget.style.visibility = 'hidden';
-								}
-
-								// 清理其他可能的 modal/overlay 元素
-								const overlays = document.querySelectorAll(
-									'[class*="netlify"], [id*="netlify"], ' +
-										'[style*="position: fixed"][style*="z-index"]:not([id="netlify-identity-widget"])'
-								);
-
-								overlays.forEach(overlay => {
-									try {
-										const htmlOverlay =
-											overlay as HTMLElement;
-										if (
-											htmlOverlay &&
-											htmlOverlay.parentElement
-										) {
-											htmlOverlay.parentElement.removeChild(
-												htmlOverlay
-											);
-										}
-									} catch (e) {
-										console.warn(
-											'Failed to remove overlay:',
-											e
-										);
-									}
-								});
-
-								// 重置所有可能被修改的样式
-								document.body.style.overflow = '';
-								document.body.style.pointerEvents = '';
-								document.documentElement.style.overflow = '';
-								document.documentElement.style.pointerEvents =
-									'';
-
-								// 移除任何可能存在的 modal 类
-								document.body.classList.remove(
-									'netlify-identity-open'
-								);
-								document.documentElement.classList.remove(
-									'netlify-identity-open'
-								);
-							} catch (e) {
-								console.warn('Error during force cleanup:', e);
-							}
-						};
-
-						// 立即执行清理
-						forceCleanup();
-
-						// 延迟再次清理，确保 Netlify Identity 有时间处理
-						setTimeout(forceCleanup, 100);
-						setTimeout(forceCleanup, 300);
-						setTimeout(forceCleanup, 500);
+						// 登录成功后，让Netlify Identity自然管理弹窗关闭
+						// 不要强制干预，让用户看到成功的反馈
 					});
 
 					window.netlifyIdentity.on('logout', () => {
@@ -314,8 +214,41 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						setDisplayName('');
 						setError('');
 						widgetOpenRef.current = false;
+
+						// 完全清理所有iframe样式，让Netlify Identity重新管理
+						const allWidgets = document.querySelectorAll(
+							'iframe[id="netlify-identity-widget"]'
+						);
+						allWidgets.forEach(widget => {
+							try {
+								const htmlWidget = widget as HTMLElement;
+								if (htmlWidget) {
+									// 重置所有可能被我们修改的样式
+									htmlWidget.style.display = '';
+									htmlWidget.style.pointerEvents = '';
+									htmlWidget.style.zIndex = '';
+									htmlWidget.style.visibility = '';
+									htmlWidget.style.position = '';
+									htmlWidget.style.top = '';
+									htmlWidget.style.left = '';
+									htmlWidget.style.width = '';
+									htmlWidget.style.height = '';
+									htmlWidget.style.border = '';
+									htmlWidget.style.overflow = '';
+									htmlWidget.style.background = '';
+								}
+							} catch (e) {
+								console.warn(
+									'Failed to reset widget styles:',
+									e
+								);
+							}
+						});
+
 						cleanupDuplicateIframes();
 						cleanupOverlays();
+
+						console.log('Logged out, all states reset');
 					});
 
 					window.netlifyIdentity.on('error', (err: any) => {
@@ -530,22 +463,12 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					}
 				}
 
-				// 隐藏所有现有的iframe，让Netlify Identity来管理显示状态
-				widgets.forEach(widget => {
-					try {
-						const htmlWidget = widget as HTMLElement;
-						if (htmlWidget && htmlWidget.style.display !== 'none') {
-							htmlWidget.style.display = 'none';
-							htmlWidget.style.pointerEvents = 'none';
-							htmlWidget.style.zIndex = '-9999';
-							htmlWidget.style.visibility = 'hidden';
-						}
-					} catch (e) {
-						console.warn('Failed to hide widget:', e);
-					}
-				});
-
+				// 不要手动设置iframe样式，让Netlify Identity完全管理
+				// 只设置状态标记
 				widgetOpenRef.current = true;
+
+				// 添加调试信息
+				console.log('Opening Netlify Identity widget...');
 				window.netlifyIdentity.open();
 			} catch (error) {
 				console.error('登录失败:', error);
