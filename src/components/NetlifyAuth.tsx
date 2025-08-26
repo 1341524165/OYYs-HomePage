@@ -69,16 +69,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				}
 			}
 
-			// 确保唯一的 iframe 处于正确状态
-			const remainingWidget = document.querySelector(
-				'iframe[id="netlify-identity-widget"]'
-			) as HTMLElement;
-			if (remainingWidget && !widgetOpenRef.current) {
-				remainingWidget.style.display = 'none';
-				remainingWidget.style.pointerEvents = 'none';
-				remainingWidget.style.zIndex = '-9999';
-				remainingWidget.style.visibility = 'hidden';
-			}
+			// 不再干预主要的netlify-identity-widget样式
+			// 让Netlify Identity完全管理其样式状态
 		};
 
 		// 清理其他可能阻塞的元素
@@ -90,7 +82,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
 					'[class*="netlify"][style*="position: fixed"], ' +
 					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"]), ' +
-					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"])'
+					'[style*="z-index"][style*="99"]:not([id*="netlify-identity-widget"]), ' +
+					'[style*="display: block !important"]'
 			);
 
 			problematicElements.forEach(el => {
@@ -101,34 +94,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				} catch {}
 			});
 
-			// 特别处理空的或阻挡性的 netlify-identity-widget iframe
-			const netlifyWidgets = document.querySelectorAll(
-				'iframe[id="netlify-identity-widget"]'
-			);
-			netlifyWidgets.forEach(widget => {
-				const htmlWidget = widget as HTMLIFrameElement;
-				try {
-					// 检查iframe是否为空或有阻挡性样式
-					const widgetStyle = window.getComputedStyle(htmlWidget);
-					const isBlocking =
-						widgetStyle.display === 'block' &&
-						widgetStyle.position === 'fixed' &&
-						(widgetStyle.zIndex === '99' ||
-							widgetStyle.zIndex === '9999') &&
-						widgetStyle.width === '100%' &&
-						widgetStyle.height === '100%';
-
-					if (isBlocking && !widgetOpenRef.current) {
-						// 如果是阻挡性的，强制隐藏
-						htmlWidget.style.display = 'none !important';
-						htmlWidget.style.pointerEvents = 'none';
-						htmlWidget.style.zIndex = '-9999';
-						htmlWidget.style.visibility = 'hidden';
-					}
-				} catch (e) {
-					console.warn('Error processing netlify widget:', e);
-				}
-			});
+			// 不再干预主要的netlify-identity-widget，让Netlify Identity自己管理
+			// 只处理其他可能的问题元素
 
 			// 重置body样式
 			document.body.style.overflow = '';
@@ -214,40 +181,15 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						setError('');
 						widgetOpenRef.current = false;
 
-						// 完全清理所有iframe样式，让Netlify Identity重新管理
-						const allWidgets = document.querySelectorAll(
-							'iframe[id="netlify-identity-widget"]'
-						);
-						allWidgets.forEach(widget => {
-							try {
-								const htmlWidget = widget as HTMLElement;
-								if (htmlWidget) {
-									// 重置所有可能被我们修改的样式
-									htmlWidget.style.display = '';
-									htmlWidget.style.pointerEvents = '';
-									htmlWidget.style.zIndex = '';
-									htmlWidget.style.visibility = '';
-									htmlWidget.style.position = '';
-									htmlWidget.style.top = '';
-									htmlWidget.style.left = '';
-									htmlWidget.style.width = '';
-									htmlWidget.style.height = '';
-									htmlWidget.style.border = '';
-									htmlWidget.style.overflow = '';
-									htmlWidget.style.background = '';
-								}
-							} catch (e) {
-								console.warn(
-									'Failed to reset widget styles:',
-									e
-								);
-							}
-						});
+						// 不要重置iframe样式，让Netlify Identity保持其内部状态
+						// 只清理我们自己的多余iframe和overlay
 
 						cleanupDuplicateIframes();
 						cleanupOverlays();
 
-						console.log('Logged out, all states reset');
+						console.log(
+							'Logged out, states reset but Netlify Identity styles preserved'
+						);
 					});
 
 					window.netlifyIdentity.on('error', (err: any) => {
@@ -300,7 +242,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 				// 额外检查：如果发现任何全屏的固定定位元素，立即隐藏
 				const fullscreenElements = document.querySelectorAll(
 					'iframe[style*="position: fixed"][style*="width: 100%"][style*="height: 100%"], ' +
-						'[style*="position: fixed"][style*="z-index: 99"]'
+						'[style*="position: fixed"][style*="z-index: 99"], ' +
+						'[style*="display: block !important"][style*="position: fixed"]'
 				);
 
 				fullscreenElements.forEach(el => {
@@ -313,16 +256,8 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						} catch (e) {
 							console.warn('Removed fullscreen blocking element');
 						}
-					} else if (
-						htmlEl &&
-						htmlEl.id === 'netlify-identity-widget'
-					) {
-						// 如果是我们的widget，确保它被隐藏
-						htmlEl.style.display = 'none !important';
-						htmlEl.style.pointerEvents = 'none';
-						htmlEl.style.zIndex = '-9999';
-						htmlEl.style.visibility = 'hidden';
 					}
+					// 不再干预netlify-identity-widget的样式
 				});
 			}
 		}, 1500);
@@ -445,20 +380,11 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						return;
 					}
 				} else if (widgets.length > 1) {
-					// 隐藏多余的 iframe 而不是删除
-					for (let i = 0; i < widgets.length - 1; i++) {
-						try {
-							const widget = widgets[i] as HTMLElement;
-							if (widget) {
-								widget.style.display = 'none !important';
-								widget.style.pointerEvents = 'none';
-								widget.style.zIndex = '-9999';
-								widget.style.visibility = 'hidden';
-							}
-						} catch (e) {
-							console.warn('Failed to hide duplicate iframe:', e);
-						}
-					}
+					// 对于多余的iframe，暂时保持不动，让Netlify Identity处理
+					// 或者在组件卸载时清理
+					console.log(
+						`Found ${widgets.length} netlify-identity-widget iframes, keeping all for now`
+					);
 				}
 
 				// 不要手动设置iframe样式，让Netlify Identity完全管理
