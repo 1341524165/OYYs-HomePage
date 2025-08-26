@@ -43,55 +43,14 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// 清理残留覆盖层，但保留核心组件
+		// 极简清理：仅恢复页面交互，不触碰任何 iframe/DOM
 		const cleanupOverlays = () => {
 			if (widgetOpenRef.current) return;
-
-			// 不删除iframe，而是通过CSS控制它们的可见性
-			const widgets = document.querySelectorAll(
-				'iframe[id="netlify-identity-widget"]'
-			);
-
-			// 将所有widget设置为不可见且不阻挡点击
-			widgets.forEach((widget, index) => {
-				const htmlWidget = widget as HTMLElement;
-				// 保留最后一个widget作为活跃的，其他的完全隐藏
-				if (index === widgets.length - 1) {
-					htmlWidget.style.display = 'none';
-					htmlWidget.style.pointerEvents = 'none';
-					htmlWidget.style.zIndex = '-9999';
-				} else {
-					// 完全隐藏其他widget
-					htmlWidget.style.display = 'none';
-					htmlWidget.style.pointerEvents = 'none';
-					htmlWidget.style.zIndex = '-9999';
-					htmlWidget.style.visibility = 'hidden';
-				}
-			});
-
-			// 清理其他可能阻塞的元素
-			const problematicElements = document.querySelectorAll(
-				'iframe[src*="netlify"]:not([id="netlify-identity-widget"]), ' +
-					'[class*="netlify"][style*="position: fixed"], ' +
-					'[style*="z-index"][style*="9999"]:not([id*="netlify-identity-widget"])'
-			);
-
-			problematicElements.forEach(el => {
-				try {
-					if (el.parentElement) {
-						el.parentElement.removeChild(el);
-					}
-				} catch {}
-			});
-
-			// 重置body样式
 			document.body.style.overflow = '';
 			document.body.style.pointerEvents = '';
 			document.documentElement.style.overflow = '';
 			document.documentElement.style.pointerEvents = '';
 		};
-
-		cleanupOverlays();
 
 		const script = document.createElement('script');
 		script.src =
@@ -125,6 +84,17 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
+					// 确保弹窗所在 iframe 可见
+					const widgets = document.querySelectorAll(
+						'iframe[id="netlify-identity-widget"]'
+					);
+					widgets.forEach(el => {
+						const hw = el as HTMLElement;
+						hw.style.display = '';
+						hw.style.pointerEvents = '';
+						hw.style.zIndex = '';
+						hw.style.visibility = '';
+					});
 				});
 				window.netlifyIdentity.on('close', () => {
 					widgetOpenRef.current = false;
@@ -206,25 +176,10 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 		document.head.appendChild(script);
 
-		const intervalCleanup = setInterval(() => {
-			if (!widgetOpenRef.current) cleanupOverlays();
-		}, 1500);
-
-		const handleGlobalClick = () => {
-			if (!widgetOpenRef.current) cleanupOverlays();
-		};
-
-		const timer = setTimeout(() => {
-			document.addEventListener('click', handleGlobalClick, true);
-		}, 2000);
-
 		return () => {
 			if (document.head.contains(script)) {
 				document.head.removeChild(script);
 			}
-			clearTimeout(timer);
-			clearInterval(intervalCleanup);
-			document.removeEventListener('click', handleGlobalClick, true);
 		};
 	}, []);
 
