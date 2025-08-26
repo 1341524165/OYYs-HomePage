@@ -528,32 +528,24 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					'iframe[id="netlify-identity-widget"]'
 				) as HTMLElement | null;
 				if (widget) {
-					// 完全重置样式
-					widget.style.display = '';
-					widget.style.pointerEvents = '';
-					widget.style.zIndex = '';
-					widget.style.visibility = '';
-					widget.style.position = '';
-					widget.style.top = '';
-					widget.style.left = '';
-					widget.style.width = '';
-					widget.style.height = '';
-					widget.style.border = '';
-					widget.style.overflow = '';
-					widget.style.background = '';
+					widget.style.display = 'none';
+					widget.style.pointerEvents = 'none';
+					widget.style.zIndex = '-9999';
+					widget.style.visibility = 'hidden';
 				}
 
 				widgetOpenRef.current = true;
+
 				window.netlifyIdentity.open();
 			} catch (error) {
 				console.error('登录失败:', error);
-				// 如果出错，尝试重新初始化
+				// 如果出错，重置状态
+				widgetOpenRef.current = false;
+
+				// 尝试重新初始化和打开
 				if (window.netlifyIdentity.init) {
 					window.netlifyIdentity.init();
-					setTimeout(() => {
-						widgetOpenRef.current = true;
-						window.netlifyIdentity.open();
-					}, 500);
+					window.netlifyIdentity.open();
 				}
 			}
 		} else {
