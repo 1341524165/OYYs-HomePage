@@ -119,18 +119,10 @@ const DocProtector: React.FC<DocProtectorProps> = ({
 			<div className="user-badge">
 				<span className="user-info">
 					👤{' '}
-					{(() => {
-						try {
-							return (
-								user?.user_metadata?.full_name ||
-								user?.email ||
-								user?.id ||
-								'已验证用户'
-							);
-						} catch (e) {
-							return '已验证用户';
-						}
-					})()}
+					{user?.user_metadata?.full_name ||
+						user?.email ||
+						user?.id ||
+						'已验证用户'}
 				</span>
 				<span className="access-status">已验证访问</span>
 			</div>

@@ -27,6 +27,33 @@ export const useAuth = () => {
 		let retryCount = 0;
 		const maxRetries = 100; // 10秒内重试
 
+		const cleanupIdentityDom = () => {
+			try {
+				const selectors = [
+					'#netlify-identity-widget',
+					'.netlify-identity-modal',
+					'.netlify-identity-overlay',
+					"[class*='netlify-identity']",
+				];
+				const nodes = document.querySelectorAll<HTMLElement>(
+					selectors.join(',')
+				);
+				nodes.forEach(node => {
+					if (node.id === 'netlify-identity-widget') {
+						node.style.display = 'none';
+						node.style.pointerEvents = 'none';
+					} else {
+						node.parentElement?.removeChild(node);
+					}
+				});
+				// 保险起见，恢复滚动和指针事件
+				document.body.style.removeProperty('overflow');
+				document.body.style.removeProperty('pointer-events');
+			} catch (_) {
+				/* ignore */
+			}
+		};
+
 		const initializeAuth = () => {
 			if (window.netlifyIdentity) {
 				try {
@@ -48,28 +75,15 @@ export const useAuth = () => {
 							setTimeout(() => {
 								try {
 									window.netlifyIdentity.close();
-									// 清理可能存在的覆盖层
-									const overlay = document.querySelector(
-										'.netlify-identity-overlay'
-									);
-									if (overlay) {
-										overlay.remove();
-									}
-									const widget = document.querySelector(
-										'#netlify-identity-widget'
-									);
-									if (widget) {
-										widget.style.display = 'none';
-									}
-								} catch (e) {
-									// 清理覆盖层失败，忽略错误
-								}
+								} catch (_) {}
+								cleanupIdentityDom();
 							}, 200);
 						});
 
 						window.netlifyIdentity.on('logout', () => {
 							setUser(null);
 							setError(null);
+							cleanupIdentityDom();
 						});
 
 						window.netlifyIdentity.on('error', (err: any) => {
@@ -78,7 +92,7 @@ export const useAuth = () => {
 
 						// 模态框关闭事件
 						window.netlifyIdentity.on('close', () => {
-							// 模态框已关闭
+							cleanupIdentityDom();
 						});
 
 						// 模态框打开事件

@@ -31,19 +31,10 @@ const AuthComponent: React.FC = () => {
 				<div className="user-info">
 					<span className="welcome-text">
 						欢迎,{' '}
-						{(() => {
-							try {
-								return (
-									user?.user_metadata?.full_name ||
-									user?.email ||
-									user?.id ||
-									JSON.stringify(user)?.slice(0, 20) ||
-									'用户'
-								);
-							} catch (e) {
-								return '用户';
-							}
-						})()}
+						{user?.user_metadata?.full_name ||
+							user?.email ||
+							user?.id ||
+							'已登录'}
 						!
 					</span>
 					<AuthButton
