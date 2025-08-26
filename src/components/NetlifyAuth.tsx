@@ -232,15 +232,18 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
 			try {
-				// 确保widget可用
-				const widget = document.getElementById(
-					'netlify-identity-widget'
+				// 重新激活所有netlify-identity-widget iframe
+				const widgets = document.querySelectorAll(
+					'iframe[id="netlify-identity-widget"]'
 				);
-				if (widget) {
-					widget.style.display = '';
-					widget.style.pointerEvents = '';
-					widget.style.zIndex = '';
-				}
+				widgets.forEach((widget, index) => {
+					const htmlWidget = widget as HTMLElement;
+					// 重置所有样式，让Netlify Identity重新控制
+					htmlWidget.style.display = '';
+					htmlWidget.style.pointerEvents = '';
+					htmlWidget.style.zIndex = '';
+					htmlWidget.style.visibility = '';
+				});
 
 				widgetOpenRef.current = true;
 				window.netlifyIdentity.open();
