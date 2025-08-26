@@ -12,6 +12,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const widgetOpenRef = useRef(false);
+	const cleanupEnabledRef = useRef(true);
 
 	// 统一的显示名计算
 	const computeDisplayName = (u: any): string => {
@@ -26,7 +27,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		);
 	};
 
-	// temporarily refresh user until the user is fully loaded,,
+	// 在登录/初始化后短暂轮询，直到拿到完整的 user（包含 email 或 name）
 	const refreshUserWithRetries = (retries: number = 20) => {
 		try {
 			const u = window.netlifyIdentity?.currentUser();
@@ -45,7 +46,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	useEffect(() => {
 		// 立即清理可能存在的残留覆盖层
 		const cleanupOverlays = () => {
-			if (widgetOpenRef.current) return;
+			if (widgetOpenRef.current || !cleanupEnabledRef.current) return;
 			const overlays = document.querySelectorAll(
 				'[id*="netlify"], [class*="netlify"], iframe[src*="netlify"], iframe[title*="identity"]'
 			);
@@ -76,19 +77,16 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 			if (window.netlifyIdentity) {
 				window.netlifyIdentity.init();
 
-				// 初始化：有用户则设置
 				window.netlifyIdentity.on('init', (u: any) => {
 					const resolved = u || window.netlifyIdentity.currentUser();
 					setUser(resolved);
 					setDisplayName(computeDisplayName(resolved));
 					setLoading(false);
-					// 若显示名为空，短暂轮询补齐
 					if (!computeDisplayName(resolved)) {
 						refreshUserWithRetries();
 					}
 				});
 
-				// 兜底获取当前用户
 				const currentUser = window.netlifyIdentity.currentUser();
 				setUser(currentUser);
 				setDisplayName(computeDisplayName(currentUser));
@@ -99,19 +97,20 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
+					cleanupEnabledRef.current = false;
 				});
 				window.netlifyIdentity.on('close', () => {
 					widgetOpenRef.current = false;
+					cleanupEnabledRef.current = true;
 					cleanupOverlays();
 				});
 
-				// 登录：先用事件里的数据立即渲染显示名，再刷新
 				window.netlifyIdentity.on('login', (loggedIn: any) => {
 					setError('');
 					widgetOpenRef.current = false;
+					cleanupEnabledRef.current = true;
 					setUser(loggedIn);
 					setDisplayName(computeDisplayName(loggedIn));
-					// 继续轮询，直到拿到完整的 user
 					refreshUserWithRetries();
 					setTimeout(() => {
 						try {
@@ -126,6 +125,7 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 					setDisplayName('');
 					setError('');
 					widgetOpenRef.current = false;
+					cleanupEnabledRef.current = true;
 					cleanupOverlays();
 				});
 
@@ -144,15 +144,16 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 		document.head.appendChild(script);
 
 		const intervalCleanup = setInterval(() => {
-			if (!widgetOpenRef.current) cleanupOverlays();
+			if (!widgetOpenRef.current && cleanupEnabledRef.current)
+				cleanupOverlays();
 		}, 1500);
 
 		const handleGlobalClick = () => {
-			if (!widgetOpenRef.current) cleanupOverlays();
+			if (!widgetOpenRef.current && cleanupEnabledRef.current)
+				cleanupOverlays();
 		};
 
 		const timer = setTimeout(() => {
-			// use bubbling phase to ensure button onClick runs first
 			document.addEventListener('click', handleGlobalClick, false);
 		}, 2000);
 
@@ -169,7 +170,17 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const handleLogin = () => {
 		if (window.netlifyIdentity) {
 			widgetOpenRef.current = true;
-			window.netlifyIdentity.open();
+			cleanupEnabledRef.current = false; // 暂停清理，避免刚打开就被移除
+			try {
+				window.netlifyIdentity.open('login');
+			} catch {
+				// 兜底重试
+				setTimeout(() => {
+					try {
+						window.netlifyIdentity.open('login');
+					} catch {}
+				}, 100);
+			}
 		}
 	};
 
