@@ -84,16 +84,23 @@ const NetlifyAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 				window.netlifyIdentity.on('open', () => {
 					widgetOpenRef.current = true;
-					// 确保弹窗所在 iframe 可见
+					// 仅显示最后一个（活动）widget，其他隐藏
 					const widgets = document.querySelectorAll(
 						'iframe[id="netlify-identity-widget"]'
 					);
-					widgets.forEach(el => {
+					widgets.forEach((el, idx) => {
 						const hw = el as HTMLElement;
-						hw.style.display = '';
-						hw.style.pointerEvents = '';
-						hw.style.zIndex = '';
-						hw.style.visibility = '';
+						if (idx === widgets.length - 1) {
+							hw.style.display = 'block';
+							hw.style.pointerEvents = 'auto';
+							hw.style.zIndex = '9999';
+							hw.style.visibility = 'visible';
+						} else {
+							hw.style.display = 'none';
+							hw.style.pointerEvents = 'none';
+							hw.style.zIndex = '-9999';
+							hw.style.visibility = 'hidden';
+						}
 					});
 				});
 				window.netlifyIdentity.on('close', () => {
