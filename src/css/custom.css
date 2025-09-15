@@ -421,3 +421,14 @@ a:hover {
 .menu__link:hover {
 	color: var(--ifm-color-reverse);
 }
+
+/* 分页控制样式 */
+.page-break-before {
+	page-break-before: always;
+}
+
+@media print {
+	.page-break-before {
+		page-break-before: always;
+	}
+}
