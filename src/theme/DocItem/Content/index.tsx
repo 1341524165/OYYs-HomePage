@@ -1,12 +1,21 @@
 import React from 'react';
 // @ts-ignore - resolved by Docusaurus at build time
 import Content from '@theme-original/DocItem/Content';
-import NetlifyAuth from '../../../components/NetlifyAuth';
+import Auth0Auth from '../../../components/Auth0Auth';
 
 export default function ContentWrapper(props) {
+	// For localhost development, skip Auth0 authentication
+	const isLocalhost =
+		window.location.hostname === 'localhost' ||
+		window.location.hostname === '127.0.0.1';
+
+	if (isLocalhost) {
+		return <Content {...props} />;
+	}
+
 	return (
-		<NetlifyAuth>
+		<Auth0Auth>
 			<Content {...props} />
-		</NetlifyAuth>
+		</Auth0Auth>
 	);
 }
