@@ -14,29 +14,16 @@ const Auth0Auth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 	// 检查Auth0是否正确配置
 	const isAuth0Configured = () => {
+		if (typeof window === 'undefined') return false;
+
 		const isLocalhost =
 			window.location.hostname === 'localhost' ||
 			window.location.hostname === '127.0.0.1';
 		if (isLocalhost) return false;
 
-		// Check if Auth0 credentials are properly set (not placeholder values)
-		const domain = getEnvVar('REACT_APP_AUTH0_DOMAIN', '');
-		const clientId = getEnvVar('REACT_APP_AUTH0_CLIENT_ID', '');
-
-		return (
-			domain &&
-			clientId &&
-			domain !== 'your-auth0-domain.auth0.com' &&
-			clientId !== 'your-auth0-client-id'
-		);
-	};
-
-	// Safe environment variable access for browser
-	const getEnvVar = (key: string, fallback: string) => {
-		// @ts-ignore - process may not be defined in browser
-		return typeof process !== 'undefined' && process.env && process.env[key]
-			? process.env[key]
-			: fallback;
+		// Auth0 is configured in Root.tsx with actual values
+		// We'll consider it configured if we're not on localhost
+		return true;
 	};
 
 	// 美化的包裹框组件
