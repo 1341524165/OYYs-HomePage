@@ -11,7 +11,7 @@ module.exports = async function createConfigAsync() {
 	return {
 		title: "OYY's Blog",
 		tagline: 'Me the man handsome so much',
-		url: 'https://your-docusaurus-test-site.com',
+		url: 'https://anticounter.netlify.app',
 		baseUrl: '/',
 		onBrokenLinks: 'throw',
 		onBrokenMarkdownLinks: 'warn',
