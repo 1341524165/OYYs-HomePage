@@ -23,12 +23,19 @@ export default function Root({ children }) {
 	const auth0ClientId = 's5j4otEAFMrGWqZpun4sNiQ4sFzm1c8z';
 
 	const onRedirectCallback = appState => {
-		// Redirect to the page the user was on before login
-		window.history.replaceState(
-			{},
-			document.title,
-			appState?.returnTo || window.location.pathname
-		);
+		// Use window.location to navigate to the original page
+		console.log('Auth0 Redirect Callback:', appState);
+		const targetPath = appState?.returnTo;
+		console.log('Target Path:', targetPath);
+
+		if (
+			targetPath &&
+			targetPath !== '/' &&
+			targetPath !== window.location.pathname
+		) {
+			console.log('Redirecting to:', targetPath);
+			window.location.href = targetPath;
+		}
 	};
 
 	return (
