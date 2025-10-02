@@ -2,6 +2,12 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import React from 'react';
 
 export default function Root({ children }) {
+	// Check if we're in the browser
+	if (typeof window === 'undefined') {
+		// Server-side rendering - just return children
+		return <>{children}</>;
+	}
+
 	// For local development, use different logic
 	const isLocalhost =
 		window.location.hostname === 'localhost' ||
@@ -32,7 +38,7 @@ export default function Root({ children }) {
 				process.env.REACT_APP_AUTH0_CLIENT_ID || 'your-auth0-client-id'
 			)}
 			authorizationParams={{
-				redirect_uri: `${window.location.origin}`,
+				redirect_uri: window.location.origin,
 			}}
 			cacheLocation="localstorage"
 		>

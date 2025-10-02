@@ -306,7 +306,7 @@ const Auth0Auth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 						}}
 					>
 						为了保护学生隐私，此内容需要通过 Auth0 验证身份。 支持
-						Google、GitHub 等多种登录方式。
+						用户名密码、Google、GitHub 等多种登录方式。
 					</p>
 
 					{/* 美化的登录按钮 */}

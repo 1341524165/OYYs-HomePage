@@ -4,6 +4,12 @@ import Content from '@theme-original/DocItem/Content';
 import Auth0Auth from '../../../components/Auth0Auth';
 
 export default function ContentWrapper(props) {
+	// Check if we're in the browser
+	if (typeof window === 'undefined') {
+		// Server-side rendering - just return content without auth
+		return <Content {...props} />;
+	}
+
 	// For localhost development, skip Auth0 authentication
 	const isLocalhost =
 		window.location.hostname === 'localhost' ||
