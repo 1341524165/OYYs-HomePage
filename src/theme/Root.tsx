@@ -22,6 +22,15 @@ export default function Root({ children }) {
 	const auth0Domain = 'dev-ux15rvdtiodhohz0.us.auth0.com';
 	const auth0ClientId = 's5j4otEAFMrGWqZpun4sNiQ4sFzm1c8z';
 
+	const onRedirectCallback = appState => {
+		// Redirect to the page the user was on before login
+		window.history.replaceState(
+			{},
+			document.title,
+			appState?.returnTo || window.location.pathname
+		);
+	};
+
 	return (
 		<Auth0Provider
 			domain={auth0Domain}
@@ -30,6 +39,8 @@ export default function Root({ children }) {
 				redirect_uri: window.location.origin,
 			}}
 			cacheLocation="localstorage"
+			useRefreshTokens={true}
+			onRedirectCallback={onRedirectCallback}
 		>
 			{children}
 		</Auth0Provider>

@@ -298,7 +298,13 @@ const Auth0Auth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 					{/* 美化的登录按钮 */}
 					<button
-						onClick={() => loginWithRedirect()}
+						onClick={() =>
+							loginWithRedirect({
+								appState: {
+									returnTo: window.location.pathname,
+								},
+							})
+						}
 						className="auth-login-button"
 						style={{
 							position: 'relative',
