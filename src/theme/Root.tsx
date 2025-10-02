@@ -32,7 +32,7 @@ export default function Root({ children }) {
 				process.env.REACT_APP_AUTH0_CLIENT_ID || 'your-auth0-client-id'
 			)}
 			authorizationParams={{
-				redirect_uri: `${window.location.origin}/.netlify/functions/auth-callback`,
+				redirect_uri: `${window.location.origin}`,
 			}}
 			cacheLocation="localstorage"
 		>
