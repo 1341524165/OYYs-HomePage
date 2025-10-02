@@ -13,30 +13,19 @@ export default function Root({ children }) {
 		window.location.hostname === 'localhost' ||
 		window.location.hostname === '127.0.0.1';
 
-	// Safe environment variable access for browser
-	const getEnvVar = (key: string, fallback: string) => {
-		// @ts-ignore - process may not be defined in browser
-		return typeof process !== 'undefined' && process.env && process.env[key]
-			? process.env[key]
-			: fallback;
-	};
-
 	// For localhost development, use simpler configuration or skip Auth0
 	if (isLocalhost) {
 		return <>{children}</>;
 	}
 
+	// Get environment variables safely
+	const auth0Domain = 'dev-ux15rvdtiodhohz0.us.auth0.com';
+	const auth0ClientId = 's5j4otEAFMrGWqZpun4sNiQ4sFzm1c8z';
+
 	return (
 		<Auth0Provider
-			domain={getEnvVar(
-				'REACT_APP_AUTH0_DOMAIN',
-				process.env.REACT_APP_AUTH0_DOMAIN ||
-					'your-auth0-domain.auth0.com'
-			)}
-			clientId={getEnvVar(
-				'REACT_APP_AUTH0_CLIENT_ID',
-				process.env.REACT_APP_AUTH0_CLIENT_ID || 'your-auth0-client-id'
-			)}
+			domain={auth0Domain}
+			clientId={auth0ClientId}
 			authorizationParams={{
 				redirect_uri: window.location.origin,
 			}}
