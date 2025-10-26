@@ -549,7 +549,7 @@ Docker is a software that utilizes these kernel features to package software int
 
 首先，什么是image?
 
-- 镜像image 是一个 `read-only` 的 template
+- 镜像image 是一个 `read-only` 的 template，或者说是一个 `immutable` 的 package.
 - 包含了一个应用所需要的所有`一切`：code, libraries, dependencies, executable files, etc.
 
 ### Docker Image Layers
@@ -588,6 +588,7 @@ Docker Image 是如何构建的？答案是 `分层(layers)`
 :::note 几个核心 Dockerfile instructions
 
 1. `FROM <image>:<tag>`: 设置父镜像。这个是 Dockerfile 的第一条指令，必须有，比如 `FROM python:3` 或者 `FROM alpine`.
+    - 当然如果不想依赖任何父镜像，想从零构建，可以 `FROM scratch`.
 2. `COPY <local path> <container path>`: 将本地文件复制到镜像中。
 3. `RUN <command>`: 执行命令。通常用来在构建时安装依赖，比如`RUN pip install -r requirements.txt`.
 4. `CMD ["cmd"]`: 设置容器启动时默认执行的命令。比如`CMD ["uvicorn", "main:app", "--reload"]`.
@@ -630,4 +631,59 @@ Docker Buildx 是一个 CLI plugin, 它支持多平台构建 (Multi-Platform Bui
 
 `docker buildx build --platform linux/amd64,linux/arm64 -t [dockerhub username]/[image name]:[tag] . --push`: 构建并推送 **amd64 和 arm64 两个平台的 image** 到 Docker Hub.
 
+## Lab 3 : Docker
+
+```python title="main.py"
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+import json
+import boto3
+
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+# s3 = boto3.resource("s3")
+'''
+switch to user "Environment Variables" to access S3
+'''
+import os
+
+access_key = os.getenv("AWS_ACCESS_KEY_ID")
+secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+s3 = boto3.resource(
+    "s3",
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key,
+)
+
+# 剩下都不变...
+
+```
+
+lab3 的重点在于 docker 的 build 和 push，代码的改变部分只有 s3 bucket 访问。
+
+由于 lab2 是从 一个 `带着 [有 s3 bucket 访问权限的 IAM User] 的 EC2 实例` 启动；lab3 的代码则是在 docker container 里面运行的，所以需要将 `[有 s3 bucket 访问权限的 IAM User] 的 Access Key ID 和 Secret Access Key` 设置为 Environment Variables，供代码访问 S3 bucket。
+
 ## Lecture 4 : Kubernetes
+
+### Docker 漏讲重点
+
+1. Docker 本身是**不包含 linux kernel** 的，它只包含 user space 的 filesystem (mount), library 以及 application code. 我们之前也强调过：Container 和 VM 的一个区别就在于，Container是共享 host OS 的 kernel，而 VM 是隔离了个Guest OS出来但也好歹有个自己的 kernel。
+
+2. Docker 的那些 image layers / container layer 只是关于`文件系统`的，跟 namespace 这种 kernel feature 无关。事实上从上面的第`1`条我们也知道，docker 或是任何 container runtime 都是不包含 kernel 的，他们只是利用了 linux kernel 的 namespace feature 来实现 container 的 isolation。
+
+:::note 关于第`2`条，在docker run <image name> 的那一刻
+
+1. Docker 向 Host OS Kernel 请求了一个`新的process`，并且给这个 process 分配了一套`新的、隔离的 namespaces (PID, network, uts, mount, etc.)`，其中就包含了**_mount_**
+2. Docker 开始准备`文件系统`
+    - 找到我们指定的 image 所对应的所有 `read-only image layers`
+    - 在这些 image layers 之上，创建一个`writable container layer`
+3. 最后，Docker 把这些全部 layers 统一起来成一个完整的 filesystem，把这个文件系统给`挂载(mount)`到这个 process 的 新的那个 `mount namespace` 里面
+
+所以总的来说：
+
+- namespace 是 isolation 机制本身
+- layers 只是被隔离的内容之一，具体来说，就是 mount.
+
+:::
