@@ -29,12 +29,12 @@ tags:
     based on delivery of only **infrastructure services**. users should handle **all the software and hardware resources**, including operating system, managing software and deployment.
     eg. AWS, Google Cloud Compute Engine
 
-![Types of Cloud Computing](ttps://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/1-1.png)
+![Types of Cloud Computing](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture1_1.png)
 
 ### Benefits of _Using Cloud Computing_ versus _Building Your Own_?
 
 - Cloud?
-  ![Benefits of Using Cloud Computing versus Building Your Own](ttps://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/1-2.png)
+  ![Benefits of Using Cloud Computing versus Building Your Own](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture1_2.png)
 
 ### More Definitions
 
@@ -160,7 +160,7 @@ def read_movies(request: Request):
 - Google Cloud Storage
 
 Cloud Storage的优点：  
-![Cloud Storage的优点](ttps://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/2-1.png)
+![Cloud Storage的优点](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture2_1.png)
 
 ### S3 Bucket
 
@@ -236,7 +236,7 @@ IAM服务的几个核心Components:
 4. User: 人，有用户名密码(登录)，或API Key (代码访问AWS)。
 5. Instance Profile: 这就是`3`中提到的，把Role附加到EC2 instance上的机制。(最安全给我们的云应用，如EC2上的FastAPI，授权的方式)
 
-![IAM Components](ttps://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/2-2.png)
+![IAM Components](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture2_2.png)
 
 ---
 
@@ -279,7 +279,7 @@ Boto3 是 AWS 官方的 Python SDK (Software Development Kit).
 最主要的目的就是**_Automation_**, for `no human in the loop`.
 
 他还有其他优势，诸如：  
-![Boto3 Advantages](ttps://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/2-3.png)
+![Boto3 Advantages](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture2_3.png)
 :::
 
 有一些key concepts需要做解释：
@@ -569,7 +569,7 @@ Docker Image 是如何构建的？答案是 `分层(layers)`
 当我们 run a container based on an image, 我们实际上是在创建一个 `writable layer` on top of the image.  
 这个 app 就运行在这个 writable layer 上，他的所有改动都只会在最上面这个 writable layer 上.
 
-![Docker Image Layers](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/3-1.png)
+![Docker Image Layers](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture3_1.png)
 
 ### Docker Image Layers vs DockerContainer Layer (KEY!!)
 
@@ -577,7 +577,7 @@ Docker Image 是如何构建的？答案是 `分层(layers)`
 
 :::caution 重要对比
 
-![Docker Image Layers vs Docker Container Layer](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/3-2.png)
+![Docker Image Layers vs Docker Container Layer](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture3_2.png)
 
 :::
 
