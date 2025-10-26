@@ -48,12 +48,9 @@ tags:
 
 :::note Edge Computing
 还有个概念叫边缘计算(Edge Computing)，它是介于云计算和物联网之间的计算模式。它将`计算资源`部署在**离数据源更近的地方**，以*减少延迟和提高效率 (Reduce latency, improve bandwidth efficiency, and enables real-time processing)*。
+:::
 
 ### Containers (Docker) & Orchestration (Kubernetes, K8s)
-
-：：：warning 重点
-
-:::
 
 - 容器：
     - 以`Docker`为代表，是一种standard way to package and deploy `application`.
