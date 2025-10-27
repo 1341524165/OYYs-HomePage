@@ -1090,31 +1090,22 @@ Namespace 是把单个物理集群“逻辑分区”的办法，便于隔离（�
 #### 必背要点
 
 - 三层服务模型：SaaS / PaaS / IaaS：定义、谁维护什么、常见例子与边界；对比自建与上云的优劣（弹性、成本、维护）。
-
 - Hybrid vs Multi-Cloud 场景与动机（成本/安全、避免厂商锁定）。
-
 - Serverless（不是没服务器，是免运维；按执行次数计费）与 Edge Computing（贴近数据源降时延）。
-
 - 容器（Docker 的打包与可移植性）与编排（Kubernetes 的自动部署/伸缩/调度）的一句话定位。
-
 - Lab1/FastAPI 基础：CRUD 概念；路由/endpoint；Jinja2Templates 渲染 HTML；TemplateResponse 需要 request; 读本地 JSON 并传入模板。
 
 #### 易错/陷阱
 
 - 混淆 Serverless 与 PaaS；误以为 Serverless = 无限免费 or 无冷启动。
-
 - 忘记 S3/存储类服务不等于“整个平台”；SaaS/PaaS/IaaS 边界题常混淆。
-
 - FastAPI 模板渲染少 request 参数导致渲染失败。
 
 #### 可能出题方式
 
 - 选择/填空：给描述判定 SaaS/PaaS/IaaS。
-
 - 判断：Serverless 的计费与“免运维”说法是否正确。
-
 - 简答：Hybrid vs Multi-Cloud 的动机。
-
 - 读码题：指出 TemplateResponse 少传 request 的问题；解释 get_users_data() 返回什么、如何传入模板。
 
 ### Lecture 2：Cloud Storage、S3、访问控制与 Boto3
