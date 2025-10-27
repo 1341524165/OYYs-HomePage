@@ -682,7 +682,7 @@ lab3 的重点在于 docker 的 build 和 push，代码的改变部分只有 s3 
 
 2. Docker 的那些 image layers / container layer 只是关于`文件系统`的，跟 namespace 这种 kernel feature 无关。事实上从上面的第`1`条我们也知道，docker 或是任何 container runtime 都是不包含 kernel 的，他们只是利用了 linux kernel 的 namespace feature 来实现 container 的 isolation。
 
-:::note 关于第`2`条，在docker run <image name> 的那一刻
+:::note 关于第`2`条，在`docker run <image name>` 的那一刻
 
 1. Docker 向 Host OS Kernel 请求了一个`新的process`，并且给这个 process 分配了一套`新的、隔离的 namespaces (PID, network, uts, mount, etc.)`，其中就包含了**_mount_**
 2. Docker 开始准备`文件系统`
