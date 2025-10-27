@@ -568,7 +568,7 @@ Docker Image 是如何构建的？答案是 `分层(layers)`
 
 ![Docker Image Layers](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture3_1.png)
 
-### Docker Image Layers vs DockerContainer Layer (KEY!!)
+### Docker Image Layers vs Docker Container Layer (KEY!!)
 
 一般从 Docker Hub 拉取一个 Parent Image，比如 `python:3` 或者 `alpine`(一种lightweight linux distribution) 作为构建镜像的开始。
 
@@ -631,6 +631,15 @@ Docker Buildx 是一个 CLI plugin, 它支持多平台构建 (Multi-Platform Bui
 
 `docker buildx build --platform linux/amd64,linux/arm64 -t [dockerhub username]/[image name]:[tag] . --push`: 构建并推送 **amd64 和 arm64 两个平台的 image** 到 Docker Hub.
 
+:::tip Context & Builder
+
+Buildx 引入了 `Context` 和 `Builder` 的概念。
+
+- Context 是构建的上下文. `docker context use <context name>` 可以切换我们的 docker 命令应该发送给哪个 daemon !
+- Builder 是 buildx 创建的一个 `build instance`, 它控制 docker image 如何被创建。- 所以当我们 `docker buildx build` 的时候，实际上是在使用一个 Builder 来构建 image. - 这就导致，如果我们使用 `--platform` 参数改变了平台之后；如果再需要使用默认的 `docker build` 命令 (也就是原本的单平台构建)，就需要`docker buildx build -t myapp --load .`
+
+:::
+
 ## Lab 3 : Docker
 
 ```python title="main.py"
@@ -687,3 +696,389 @@ lab3 的重点在于 docker 的 build 和 push，代码的改变部分只有 s3 
 - layers 只是被隔离的内容之一，具体来说，就是 mount.
 
 :::
+
+### Why Kubernetes?
+
+数据量太大，单个 server 无法存储 / 处理，只好分布式。
+
+但分布式引发了新问题：
+
+- 如何让这些机器`Highly Available`?
+- 如何实现`容错(Fault Tolerance)`?
+- 如何管理服务间`Communication`, `Data Sharing` & `Computation`?
+
+Kubernetes 就是来解决这些问题的**_编排(Orchestration)_**工具
+
+### Monolithic vs Microservices (单体 vs 微服务)
+
+在讨论 K8s 如何管理服务之前，我们需要了解两种主要的软件架构风格。
+
+- Monolithic: 整个应用被打包成一个 single executable file / deployment unit.
+    - 任何改动都需要重新build & deploy整个应用。
+- Microservices: 整个应用被拆分成多个小的、独立的服务，各服务之间通过轻量级API(通常是HTTP/RESTful API)进行通信, `松散耦合(Loosely Coupled)`。
+    - 每个服务可以独立部署、扩展、更新。
+
+:::note 优缺点
+
+![Monolithic](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture4_1.png)
+
+![Microservices](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture4_2.png)
+
+:::
+
+### Microservices Orchestration
+
+当我们开始运行多个container, 比如一个web app container 和一个 database container, 我们如何管理他们？
+
+对于单机器的简单场景，`Docker Compose` 可以满足我们的需求。
+
+- 使用一个`YAML`文件定义和运行多个container。
+- 可以管理container之间的依赖关系，网络通信和环境变量等。
+
+用一个.yml file加上一个`docker-compose up -d`就可以启动多个container.
+
+但局限性也很大：
+
+- 不支持remote deployment
+- 不支持autoscaling
+- 不支持cross-environment running containers
+- 所有container都运行在同一个机器上，无法实现`Highly Available`
+
+所以真正要`Highly Available`、`Distributed`、`Scalable`的场景，我们需要一个更强大的工具：Kubernetes。
+
+### Kubernetes
+
+K8s is a `container orchestration platform` that manages containerized applications across multiple machines, and abstracts the underlying hardware resources.
+
+提供了：
+
+- Highly Availability
+- Scalability
+- Fault Tolerance (Disaster Recovery)
+- State Management
+
+### Kubernetes Key Concepts
+
+1. Node：一个 physical or virtual machine that can run a container (就是server).
+    - 一个 K8s Cluster 由多个 Node 组成。
+2. Kubelet: 运行在`每个Node上的agent`.
+    - 负责确保`Pod`运行在 该 Node 上运行，并且与`Control Plane`通信。
+3. Pod: 一个 K8s 的`最小 deployment unit of computation` (最小可部署的计算单元).
+    - 一个 Pod 包含 一个 Docker Container.
+    - 每个 Pod 都有自己的 IP address, 所以他们可以相互通信。
+    - Pod 是 `ephemeral (短暂的)`, 所以他们可以被随时销毁并被新的 Pod 替代。
+
+### Kubernetes Architecture
+
+两部分：
+
+1. Control Plane:
+    - 以前叫Master Node, 现在叫Control Plane.
+    - **至少需要一个！！！**
+    - Cluster 的`大脑`，负责`调度`和管理 Pod.
+2. Worker Nodes:
+    - 就是普通的Node，可以有很多个
+    - 负责实际运行 Pod.
+
+:::note 总结一下 K8s Architecture
+
+Cluster 层面：  
+一个 K8s Cluster 由至少一个大脑也就是 Control Plane 和多个 Worker Nodes 组成。
+
+Node 层面：  
+每个 Node 上运行着一个 Kubelet, 负责确保 Pod 运行在 该 Node 上运行，并且与 Control Plane 通信。  
+当然，一个 Node 上可以运行多个 Pod.
+
+Pod 层面：  
+Pod 是 K8s 的`最小 deployment unit of computation`, 通常包含一个 Docker Container (当然也可以包含多个，但一般是1on1).
+
+:::
+
+Control Plane 内部包含几个关键组件：
+
+1. API Server:
+    - 与 K8s Cluster 交互的`唯一入口`.
+2. etcd:
+    - 一个 Highly Available 的 Key-Value Storage Database. 保存了整个 Cluster 的 Configuration & `状态(State)`.
+3. Scheduler:
+    - 负责调度 Pod 到合适的 Node 上运行。
+4. Controller Manager:
+    - 负责管理 Controller, 监控集群状态，努力使实际状态与期望保持一致（比如，一个Pod挂了，他就会启动一个新的Pod来替代他）
+
+K8s 还创建了一个 Virtual Network, 覆盖了 Control Plane 和 Worker Nodes 之间的所有通信。使得 Cluster 中的所有 Pods & Services 可以在一个`Flat Network`中相互通信，即使它们在不同的物理机器上。
+
+### Kubernetes Configuration & YAML
+
+如何告诉 K8s 我们要运行什么应用？
+
+1. 用 `API Server` 来交互
+2. 用 `YAML` 文件来 `Declaratively` 描述我们期望的状态(Desired State)
+
+![Kubernetes Configuration & YAML](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture4_3.png)
+
+:::tip YAML - Manifest File
+
+我们管 K8s 的 YAML 文件叫做 `Manifest`.
+
+一般包含几个顶级字段：
+
+- `apiVersion`: 使用的 K8s API 版本
+- `kind`: 要创建的资源类型 (Pod, Service, Deployment, etc.)
+- `metadata`: 资源的名字、namespace、labels等
+- `spec`: **最重要的部分** - Desired State. (比如 replicas: 3, image: nginx:latest, ports: [80, 443], etc.)
+- `status`: 当前实际状态。由 K8s 自动维护。
+
+当你用 `kubectl apply` 命令提交这个 YAML 文件后，Kubernetes 就会努力让“实际状态”去匹配你的“期望状态”。然后你通过 `status` 字段来查看“实际状态”，比如是不是真的有3个副本在运行。
+
+:::
+
+在本地学习测试K8s，我们可以使用 `minikube` 来创建一个`单节点的 K8s Cluster`，然后使用 `kubectl` (K8s CLI, 去沟通Control Plane的API Server) 来管理它。
+
+## Lecture 5 : Kubernetes 2
+
+K8s 有很多组件，之前学了 Nodes 和 Pods，现在学一下其他几个关键组件：
+
+1. Namespace: 一个 Cluster 可以包含多个 Namespace, 每个 Namespace 是 Cluster 中的一个逻辑隔离区域。
+2. Deployment: 管理`无状态(Stateless)`的应用程序。
+3. StatefulSet: 管理`有状态(Stateful)`的应用程序 (比如数据库)。
+4. Service: 用于Pod之间的通信以及`负载均衡(Load Balancing)`。
+5. Volume: 用于持久化数据 (Persistent Data)。
+6. ConfigMap: 用于存储配置文件。
+7. Secret: 用于存储敏感信息 (Sensitive Data) (比如密码)。
+8. Ingress: 用于将集群内部的服务暴露(expose)给外部访问。
+
+:::tip Why using Deployment instead of Pod?
+
+我们几乎从不直接创建 Pod, 比如去写一个 `kind: Pod` 的YAML file.  
+我们使用更高层次的抽象，比如 Deployment（部署）或 StatefulSet（有状态集）.
+
+因为 `Pod` 是“脆弱的”。如果一个 Pod 崩溃了，它就死了，不会自动回来。这不符合我们对健壮系统的要求。
+
+而：一个 `Deployment` 会管理一组 Pod. 你在 Deployment 的 spec 中说“ 我想要3个副本”. Deployment 的`控制器 (Controller)` 就会去创建3个 Pod。如果其中一个 Pod 崩溃了，控制器会立刻发现，并马上启动一个新的 Pod 来替代它。
+
+这个是 Kubernetes 的核心价值： **_Self-Healing & Maintaining Desired State_**.
+
+:::
+
+### State, Storage & Configurations
+
+上面提到了，我们有两种基本的应用类型：
+
+- Stateless（无状态） - `Deployment`：像我们之前做的那个电影网站。它`只是读取数据`，本身不存储任何变化。这种应用非常容易扩展，用 Deployment 就行。我可以轻松地把它从3个副本扩展到100个。
+- Stateful（有状态） - `StatefulSet`：比如`数据库`。每个数据库实例的数据可能不一样（比如主库和从库），它们需要把数据`持久化地存储`在某个地方，而且它们有自己独一无二的身份（比如 db-0, db-1）。
+
+#### Volumes: 用于持久化数据 (Persistent Data)
+
+我们之前讲过，Pod 是 ephemeral (短暂的)，它重启后，里面所有的数据都会丢失。如果这是个数据库 Pod，那数据就全没了。所以，我们必须把数据存储在 Pod 之外。这就是 Volumes 的作用。
+
+在 Kubernetes 中，存储是这样工作的：
+
+- PersistentVolume (PV)：持久卷。这是集群管理员提前准备好的“一块存储”，比如一块 AWS EBS 云硬盘，或者只是节点上的一个目录。
+- PersistentVolumeClaim (PVC)：持久卷`声明`。这是一个用户（或 Pod）发出的“存储申请”。它说：“我需要 10GB 的存储空间”。
+
+Kubernetes 会自动把符合条件的 PV 和 PVC 绑定（bind）在一起。
+
+`StatefulSet` 就会为它的每个 Pod 自动创建并管理一个 PVC，确保每个 Pod 都有自己独立的、持久化的存储空间。
+
+#### ConfigMaps & Secrets
+
+解决了数据存储，那应用的配置呢？比如数据库的 URL、用户名、密码。我们不应该把这些信息硬编码在 Docker 镜像里。
+
+ConfigMap 和 Secret 就是用来解决这个问题的。
+
+- ConfigMap: 用于存储非敏感信息 (Non-Sensitive Data) (比如配置文件), 他们是`纯文本`的。
+- Secret: 用于存储敏感信息 (Sensitive Data) (比如密码), 他们是默认是用 `Base64 编码`的
+    - 注意：Base64 不是加密，只是编码。但在一个生产集群里，它们**应该被配置为“静态加密”(Encryption at Rest)**。
+
+那么 Pod 如何使用它们呢？有两种主要方式：
+
+1. 注入为`环境变量(Environment Variables)`。
+2. 挂载为`卷文件(Volumes)`。ConfigMap 或 Secret 里的每一个键值对，都会在 Pod 里变成一个文件。
+
+:::note 上述几个概念的关系总结
+
+StatefulSet 管理 Pod，去叫 Pod 使用 Volume (在 Pod 的 `spec` 字段中声明它要 mount 哪个 Volume), 而 Volume 里面填了 ConfigMap 或 Secret.
+
+当然最后Pod使用的主要方式也说了，不一定要填到 Volume 里面，也可以`直接注入为环境变量`。
+:::
+
+### Networking
+
+Pod 的第一个问题：数据存储和应用配置解决了。
+
+第二个问题是：Pod 不仅仅是`ephermal`的，它的 **IP Address 也是 ephemeral** 的。这就意味着，如果一个 Pod 重启了，它的 IP Address 就会改变。
+
+那么，如果我的前端 Pod 需要和后端 Pod 通信，它需要知道后端 Pod 的 IP Address。这就需要一个`Service`来解决 (在 Lecture 5 开篇的第`4`点有提到)。
+
+#### Services
+
+Service 是 Kubernetes 网络的核心。你可以把它想象成一个“前台接待”或“稳定的门牌号”。
+
+它的作用是：
+
+1. 提供一个稳定的 IP 地址：Service 会被分配一个它自己的、永不改变的内部 IP（叫做 `ClusterIP`）。
+2. 服务发现：Service 使用 `Labels (标签)` 和 `Selectors (选择器)` 来自动发现它应该管理哪些 Pod
+3. 负载均衡(Load Balancing)：当请求到达 Service 的 IP 时，它会自动把请求转发给背后某一个健康的 Pod 副本，实现负载均衡。
+
+:::info 关键是：Service 是如何找到 Deployment 创建的 Pod 的？
+
+1. 在 Deployment 的 template (YAML file 中的 `spec` 字段) 里，你给 Pod 打上标签：`labels: { app: my-app }`
+2. 在 Service 的 YAML file 中，你又会指定要使用哪个标签来选择 Pod：`selector: { app: my-app }`
+
+这样，Service 就会自动找到所有匹配这个标签的 Pod，并把它们作为后端，实现负载均衡。
+
+:::
+
+#### Ports
+
+在定义 Service 时，你会遇到好几个“port”，这非常容易混淆：
+
+- targetPort: 目标端口。这是你的容器（Container）真正在监听的端口。比如你的 Node.js 应用运行在 8000 端口。
+- port: 服务端口。这是 `Service` 在集群`内部暴露`的端口。集群内的其他 Pod 应该通过 `http://<service-name>:<port>` (例如 `http://my-service:80`) 来访问它。
+- nodePort: 节点端口。这是 Service 在每个 `Node 节点`（物理机/虚拟机）上暴露的端口，通常是一个 `30000-32767` 之间的高端口。它允许你从集群`外部`通过 `http://<node-ip>:<nodePort>` 来访问服务。我们在 Lab 4 中就会用它。
+
+#### Ingress (入口) - 更智能的路由
+
+`NodePort` 虽然能从外部访问，但它**不灵活（只能用高端口）**且**不适合生产环境**。
+
+更高级的方案是 `Ingress`。Ingress 是一个 `L7 (HTTP/HTTPS) 路由规则管理器`。它可以帮你实现：
+
+- 基于域名(domain name)的路由：`api.example.com` 转发到 `api-service`；`www.example.com` 转发到 `web-service`。
+- 基于路径(path)的路由：`example.com/api` 转发到 `api-service`；`example.com/` 转发到 `web-service`。
+
+Ingress 资源本身只是一套规则。你还需要一个 Ingress Controller（如 `NGINX Ingress Controller` 或 `AWS ALB`）来执行这些规则。
+
+### 补充: Namespace
+
+K8s 也有 Namespace 的概念，用于隔离资源。
+
+你可以用 `kubectl get pods -n dev` 来只看 dev 空间里的 Pod，用 `kubectl get pods -n prod` 来看 prod 里的。这对于组织大型团队和隔离资源非常有用。
+
+## Lecture 6 - 好像算是拓展 / 复习？
+
+### 一、Stateful? Volume / PV / PVC
+
+首先要问一个问题：为什么应用需要`Stateful`？
+
+我们知道，Pod 被设计为**临时的(Ephemeral)** 。K8s 随时可能因为节点故障、负载均衡或更新而杀死并重建一个 Pod。当一个 Pod 被销毁时，它在容器读写层 (R/W layer) 中的所有数据都会永久丢失。
+
+#### 核心概念
+
+- Volume：本质是“存放数据的地方”，可在容器运行时挂载到文件系统中的某个挂载路径（mountPath）
+- PersistentVolume (PV)：持久卷。集群里`真实存在`的一块存储资源, 比如一块 `AWS EBS 云硬盘`，或者只是节点上的一个目录。
+- PersistentVolumeClaim (PVC)：持久卷声明。Pod 需要使用存储时，通过 PVC 向管理员申请一块 PV。对存储的请求（申请 N Gi、访问模式等）。常用 `ReadWriteOnce`（单节点读写，**但可被该节点上的多个 Pod 使用**）。
+
+在 Minikube 场景：常用 `hostPath` 做演示；云上会用 `EBS/NFS` 等专业后端。
+
+### 二、ConfigMap & Secret
+
+1. Non-Sensitive Data: ConfigMap
+    - K/V 存储，纯文本
+    - 以`环境变量`或`卷文件挂载`两种方式注入 Pod
+    - 不要放敏感数据！！！
+2. Sensitive Data: Secret
+    - 定义格式与 ConfigMap 类似，但用 `base64` 编码
+    - 真正生产需要开启`静态加密(Encryption at Rest)` **_(EKS 可以用 `KMS` 实现)_**
+
+:::note envVariables vs Volumes?
+
+- 环境变量：`简单`键值、应用天然读 env 的场景（如 AWS_ACCESS_KEY_ID）。
+- 卷挂载：`内容较大/文件形`（证书、JSON、properties）、上线后可`热更新`更灵活。
+
+:::
+
+### 三、Networking
+
+为什么需要`副本与服务(Replication & Service)`?
+
+- HA(High Availability)高可用 / `容灾(Disaster Recovery)`：某个 Pod 挂了，流量自动切去健康副本。
+- 可伸缩(Scalability)：负载上来就多副本 + `负载均衡(Load Balancing)`。
+
+`Service`: 给一组易失的 Pod 提供稳定的虚拟 IP/主机名（反向代理），并且健康检查+负载均衡是“顺带的好处”。
+
+- `ClusterIP`: 仅集群内可达（默认）
+- `NodePort`: 在每个节点开放一个端口以供外部访问（教学/开发常用；生产更推荐 Ingress）
+
+:::info 端口三要素别搞混
+
+- containerPort：容器里应用监听的端口。这是你的容器（Container）真正在监听的端口。比如你的 Node.js 应用运行在 8000 端口。
+- targetPort: 目标端口。Service 把流量转发到 Pod 的哪个端口（**应等于 containerPort**）
+
+- port: 服务端口。这是 `Service` 在集群`内部暴露`的端口。集群内的其他 Pod 应该通过 `http://<service-name>:<port>` (例如 `http://my-service:80`) 来访问它。
+- nodePort: 节点端口。这是 Service 在每个 `Node 节点`（物理机/虚拟机）上暴露的端口，通常是一个 `30000-32767` 之间的高端口。它允许你从集群`外部`通过 `http://<node-ip>:<nodePort>` 来访问服务。
+
+:::
+
+### 四、Ingress (入口)
+
+云负载均衡的两类:
+
+- ALB（应用型，L7）：按 `URL/Host/Header` 做转发规则
+- NLB（网络型，L4）：**不看报文内容**，只做转发
+
+本课使用 Ingress 时，通常配 `ALB`（或本地用 NGINX Ingress 模拟）。
+
+#### Ingress 与 Ingress Controller
+
+- Ingress：描述“域名/路径 → 集群内 Service”的路由`规则`
+- Controller：`读取规则`并实际执行。
+    - AWS ALB：EKS 自带，无需安装；较慢但原生对接云 LB。
+    - Ingress-NGINX：需自己安装，CSP 无关，Minikube 可用，部署快。（两者通过注解区分 class）。
+
+#### 域名如何指向 Ingress？
+
+在域名提供商处配置 DNS 记录（A/AAAA/CNAME），把域名指到云 LB 的地址；Ingress 规则再把请求分发到后端 Service。
+
+:::warning 考点速记
+
+![考点速记](https://jcqn.oss-cn-beijing.aliyuncs.com/img_blog/4207CC/lecture6_1.png)
+
+:::
+
+## Lecture 7
+
+### 一、Namespace 回顾
+
+Namespace 是把单个物理集群“逻辑分区”的办法，便于隔离（如 dev / prod）、权限与资源配额管理。
+
+可以给不同的命名空间设置`CPU配额(Quota)` (比如 2 vCPU) / `内存配额`(`Memory Quota`) (比如 4GB) 与`副本数上限/下限` (比如 1-10个 Pod)
+
+### 二、让 Kubernetes “可上生产”的关键：自动扩 / 缩容(Autoscaling)
+
+#### Horizontal Pod Autoscaler (HPA)
+
+- HPA 是 Kubernetes 的自动扩 / 缩容机制，它会基于平均资源使用百分比阈值，自动增加/减少**副本数**。常见字段：`minReplicas`、`maxReplicas`、`targetCPUUtilizationPercentage`。
+    - $ replicas = ceil(current replicas × (current value / desired value)) $
+
+- HPA 的度量(Metric)来自 `metrics-server`，它会定期采集 Pod 的 CPU 和内存使用情况，然后计算出平均使用率。Minikube 需要启用 `addon` 才能使用。
+
+#### Vertical Pod Autoscaler (VPA)
+
+自动调整 Pod 的 **CPU配额 / 内存配额**；有时需要**重启容器才能生效**（因此对“不能轻易重启”的应用要谨慎）
+
+#### Requests / Limits 易混点
+
+- Requests：容器运行时所需的最低资源量（HPA 会基于此调整副本数）
+- Limits：容器运行时可使用的最大资源量（超过会 OOMKilled）
+
+### 三、Kubernetes 中的“任务”调度：Job & CronJob
+
+#### Job vs CronJob
+
+- Job：`一次性`任务，运行到容器退出即完成；可设**重试/backoff**。适合恢复备份、建管理员、初始化数据等。
+- CronJob：按 cron 表达式`周期性创建 Job`；无需手动触发。
+
+#### Cron 表达式速览
+
+```text
+分钟 小时 日期 月份 星期
+*     *   *    *   *
+```
+
+`0 * * * *` 表示每小时的第 0 分钟执行一次。`*/10 * * * *` 表示每小时的第 0, 10, 20, 30, 40, 50 分钟执行一次。
+
+`0 0 * * *` 每天 0 点；`0 0 * * 0` 每周日 0 点；`0 0 1 * *` 每月 1 日 0 点。
+
+#### CronJob 示例
+
+将调度从“每 5 分钟” 改到 “每 1 分钟”，用`kubectl describe cronjob <cronjob-name>` 查看调度信息, `Last Scheduled Time` 每分钟刷新。
