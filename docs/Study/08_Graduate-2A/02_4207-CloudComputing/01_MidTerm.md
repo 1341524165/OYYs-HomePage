@@ -284,7 +284,7 @@ Boto3 是 AWS 官方的 Python SDK (Software Development Kit).
 1. Resources(资源): 高阶的(high-level) abstraction，比如`s3.Bucket`..
 2. Clients(客户端): 低级的(low-level) access to AWS services APIs, 比如`s3_client.list_buckets()`
 3. Sessions(会话): 用于管理AWS credentials和configuration settings.
-4. Waiters(等待者): **很重要的概念！！**有些操作(如创建一个数据库)并不是立即完成的。Waiter会自动等待这个操作完成，再去执行脚本的下一步，而不是让我们写一个for loop去死等。
+4. Waiters(等待者): **很重要的概念！！** 有些操作(如创建一个数据库)并不是立即完成的。Waiter会自动等待这个操作完成，再去执行脚本的下一步，而不是让我们写一个for loop去死等。
 5. Paginators(分页器): 有些操作(如获取一个S3 Bucket里的所有object)可能返回很多结果。Paginator会`自动分页`(如一次加载十条)，而不是让它们一次性全部加载到内存里。
 
 ### Boto3 Code
