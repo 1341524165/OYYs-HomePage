@@ -1082,3 +1082,190 @@ Namespace 是把单个物理集群“逻辑分区”的办法，便于隔离（�
 #### CronJob 示例
 
 将调度从“每 5 分钟” 改到 “每 1 分钟”，用`kubectl describe cronjob <cronjob-name>` 查看调度信息, `Last Scheduled Time` 每分钟刷新。
+
+## 总
+
+### Lecture 1：Intro（云计算基础、FastAPI Lab）
+
+#### 必背要点
+
+- 三层服务模型：SaaS / PaaS / IaaS：定义、谁维护什么、常见例子与边界；对比自建与上云的优劣（弹性、成本、维护）。
+
+- Hybrid vs Multi-Cloud 场景与动机（成本/安全、避免厂商锁定）。
+
+- Serverless（不是没服务器，是免运维；按执行次数计费）与 Edge Computing（贴近数据源降时延）。
+
+- 容器（Docker 的打包与可移植性）与编排（Kubernetes 的自动部署/伸缩/调度）的一句话定位。
+
+- Lab1/FastAPI 基础：CRUD 概念；路由/endpoint；Jinja2Templates 渲染 HTML；TemplateResponse 需要 request; 读本地 JSON 并传入模板。
+
+#### 易错/陷阱
+
+- 混淆 Serverless 与 PaaS；误以为 Serverless = 无限免费 or 无冷启动。
+
+- 忘记 S3/存储类服务不等于“整个平台”；SaaS/PaaS/IaaS 边界题常混淆。
+
+- FastAPI 模板渲染少 request 参数导致渲染失败。
+
+#### 可能出题方式
+
+- 选择/填空：给描述判定 SaaS/PaaS/IaaS。
+
+- 判断：Serverless 的计费与“免运维”说法是否正确。
+
+- 简答：Hybrid vs Multi-Cloud 的动机。
+
+- 读码题：指出 TemplateResponse 少传 request 的问题；解释 get_users_data() 返回什么、如何传入模板。
+
+### Lecture 2：Cloud Storage、S3、访问控制与 Boto3
+
+#### 必背要点
+
+- 云存储动机（本地硬件的贵/不灵活/难扩展）与三大厂的对象存储
+- S3 核心：Bucket / Object / Key（基于键的存储，非树型）；Bucket 名称全局唯一
+- RBAC 与最小权限原则（PLP）：按角色授予最少权限；审计（CloudTrail）；临时凭证（STS）
+- IAM 组件：Policy/Permission/Role/User/Instance Profile；外部访问（AK/SK）vs 内部访问（EC2 角色）
+- Boto3 概念：Resource（高阶）/Client（低阶）/Session/Waiters（等待异步完成）/Paginators（自动分页）
+- Lab2：从 S3 读 JSON，替代本地文件
+
+#### 易错/陷阱
+
+- 直接给用户长期 AK/SK；在 EC2 里不用 Role
+- 混淆 Resource 与 Client；忽视 Waiter 造成竞态/半成品资源
+- 把 S3 当成本地层级文件系统来用（Key 只是字符串路径）
+
+#### 可能出题方式
+
+- 场景题：给你"只读某 Bucket 某前缀"的需求，如何设计角色与 Policy 以符合 PLP？
+- 选择：Bucket 名称是否全局唯一、S3 是否树形结构
+- 读码：s3.Object(bucket, key).get()['Body'].read() 解释数据流；指出缺少分页/等待器隐患
+- 简答：内外部访问凭证的最佳实践差异
+
+### Lecture 3：VM & Containers、Docker 基础与 Buildx
+
+#### 必背要点
+
+- VM vs Container：
+    - 虚拟化层级：VM=硬件层，Container=OS 层
+    - 资源分配：VM 固定/偏大，Container 默认无限制更高效
+    - 隔离/安全：VM 完全隔离更安全；Container 共享内核更轻量
+    - GUI/跨OS：VM 更灵活，容器共享内核受限
+- Hypervisor：Type-1（裸金属，云厂商常用）vs Type-2（宿主 OS 上）
+- Linux Namespace 类型：PID/net/mount/IPC/uts/user；unshare 创建隔离视图
+- Docker 核心：
+    - Image = 多个只读层；Container = 镜像层之上的可写层
+    - Dockerfile 指令：FROM/COPY/RUN/CMD
+    - 常用 CLI：build/run/ps/exec -it；端口映射 -p host:container
+    - 发布：tag/login/push
+    - Buildx 多架构构建与 --platform linux/amd64,linux/arm64；--load 切回本地单平台工作流
+- Lab3：容器内访问 S3 需用环境变量提供 AK/SK（对比 Lab2 的 EC2 Role）
+
+#### 易错/陷阱
+
+- 误以为 Docker 自带内核；把 Layer 和 Namespace 混为一谈
+- 容器端口日志始终显示容器内端口（命名空间视角），与宿主机映射端口不同
+- 在生产把长期 AK/SK 烧进镜像
+
+#### 可能出题方式
+
+- 对比题：列 3 点 VM vs Container
+- 选择：哪个属于 Image 层变化、哪个属于 Container 层？
+- 命令题：写出多平台镜像构建并推送到 Hub 的命令
+- 判断：Docker 是否包含内核；docker exec -it 作用
+- 场景：为何在 EC2 上 Lab2 不需要 AK/SK 而 Lab3 需要？
+
+### Lecture 4：Kubernetes（动机、架构、YAML）
+
+#### 必背要点
+
+- Docker 不包含内核；Namespace 是隔离机制；Layer 只是被隔离的文件系统内容（mount）
+- 为何需要 K8s：高可用、容错、可伸缩、状态管理、分布式资源抽象
+- 架构：
+    - Control Plane：API Server（唯一入口）、etcd（状态存储）、Scheduler（调度）、Controller Manager（控制循环）
+    - Node 与 Kubelet
+    - Pod=最小部署单元、短暂、可被替换；集群虚拟网络"扁平互通"
+- YAML/Manifest：apiVersion/kind/metadata/spec/status；kubectl apply 以声明式驱动"期望态=实际态"；minikube + kubectl 本地练习
+
+#### 易错/陷阱
+
+- 直接创建 Pod 不用更高抽象（Deployment/StatefulSet）
+- 把 status 当成自己填写；忽略 labels/selector 在后续对象中的作用
+
+#### 可能出题方式
+
+- 填空：控制面 4 大组件与职责
+- 简答：声明式 vs 命令式，有何优势？
+- 读 YAML：指出该清单缺失的关键字段或 labels 导致的后续联动问题
+- 命令题：本地用 minikube 部署 manifest 的步骤
+
+### Lecture 5：Kubernetes 进阶（工作负载、存储、配置、网络）
+
+#### 必背要点
+
+- 对象族谱：Namespace / Deployment（无状态）/ StatefulSet（有状态）/ Service / Volume / ConfigMap / Secret / Ingress
+- 为什么 Deployment 而不是裸 Pod：自愈 + 期望副本数
+- 存储：PV（管理员准备的真实存储）/ PVC（用户申请）；StatefulSet 为每个 Pod 管理独立 PVC
+- 配置：ConfigMap（非敏感，纯文本）；Secret（敏感，base64，生产需静态加密）。注入方式：环境变量或挂载为文件
+- 网络：Pod IP 易变 → Service 提供稳定访问点；通过 label/selector 绑定后端 Pod 并负载均衡
+- 端口语义：containerPort（容器监听） = targetPort（Service 转发目标）；port（Service 暴露给集群内部）；nodePort（对外部主机高端口）
+- Ingress：L7 路由（基于域名/路径）；需 Ingress Controller（如 NGINX 或云厂商 ALB）
+
+#### 易错/陷阱
+
+- 把 Secret 当"加密"；base64 不是加密
+- 搞混 port/targetPort/nodePort/containerPort
+- Service 不写 selector 或标签不匹配，导致流量落不到后端
+
+#### 可能出题方式
+
+- 画关系：Deployment↔Pod↔Service 的 label/selector 连接
+- 选择：哪个场景用 StatefulSet；PV/PVC 角色分工
+- 配置设计：把 DB 凭证以何种方式注入？说明取舍
+- 端口配对题：给一组数值，让你标注各字段
+
+### Lecture 6：状态、配置与流量入口的串讲（"要点速记"风格）
+
+#### 必背要点（速记版）
+
+- Stateful & 存储：Pod 短暂 → 数据需落盘；PV（供给）/PVC（申请）；常用访问模式：ReadWriteOnce（同一节点多 Pod 可用）
+- ConfigMap / Secret：env 简单键值；卷挂载适合证书/大文件/热更新；Secret 要静态加密（EKS 可配 KMS）
+- 副本与 Service：HA/容灾/扩缩容；Service = 稳定 IP + 负载均衡 + 健康探测
+- 端口四兄弟：containerPort（=目标端口）/targetPort/port/nodePort
+- Ingress：ALB(NLB 对比)；域名 → LB → Ingress → Service；DNS 记录（A/CNAME）指向 LB
+
+#### 可能出题方式
+
+- 连线题：端口语义配对
+- 场景：把 api.example.com 与 www.example.com 路由到不同后端，画出 Ingress 规则与 Service
+- 简答：为何生产更偏向 Ingress 而非 NodePort？
+- 解释：为何 R/W 层数据在 Pod 重建后会丢失，如何避免？
+
+### Lecture 7：Namespace、自动扩缩与定时任务
+
+#### 必背要点
+
+- Namespace：逻辑隔离；可配置CPU/内存配额与副本数上下限，配合 RBAC 实现多租户/环境隔离
+- Autoscaling：
+    - HPA：按平均资源使用率自动调副本数（需 metrics-server）；公式：
+        ```
+        replicas = ⌈current replicas × (current value / desired value)⌉
+        ```
+    - 常用字段：minReplicas / maxReplicas / targetCPUUtilizationPercentage
+- VPA：自动调 requests/limits（可能需重启）
+- Requests vs Limits：最低保证 vs 上限（超限 OOMKilled）
+- Job / CronJob：
+    - Job 一次性任务，支持重试/backoff
+    - CronJob 周期性创建 Job；Cron 表达式：分 时 日 月 周
+
+#### 易错/陷阱
+
+- 把 HPA 当"按 QPS 扩容"而忘了它默认依据 CPU/内存（可扩展自定义指标）
+- 只调 Limits 不调 Requests，HPA 失真；或把 VPA 与 HPA 冲突使用不加策略
+- Cron 字段顺序写反；Job 与 CronJob 的"谁生成谁"关系搞错
+
+#### 可能出题方式
+
+- 计算题：给 desired=50%，当前=120%，当前副本=5，问扩到多少
+- 判断：VPA 是否总是即刻生效？Requests/limits 的作用分别是什么？
+- Cron 题：把"每周日零点执行"写成表达式并解释
+- 命令/诊断：如何在 minikube 启用 metrics-server 以让 HPA 工作；如何查看 CronJob 的 Last Scheduled Time
