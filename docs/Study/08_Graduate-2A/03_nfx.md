@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3
-id: C++/C
+id: CPlusPlus_C
 title: C++/C
 tags:
     - NFX
