@@ -3,9 +3,9 @@ sidebar_position: 9
 id: Class 8
 title: Class 8
 tags:
-	- Study
-	- Unity
-	- Video Game Teaching
+    - Study
+    - Unity
+    - Video Game Teaching
 ---
 
 # Class 8 - Platformer Part 2: Animation & Tilemap
