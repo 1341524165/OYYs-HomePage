@@ -311,7 +311,7 @@ Tilemap 系统由以下几个部分组成：
     - 点击画笔工具
     - 在 Scene 视图中绘制地形
 
-![TileMap Drawing](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class8_TileMapPalette.png)
+![TileMap Drawing](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class8_TilePalette.png)
 
 #### 5.4 为 Tilemap 添加碰撞
 
