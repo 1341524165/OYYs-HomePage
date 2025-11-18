@@ -251,7 +251,7 @@ MySQL 有多种存储引擎，常见的有MyISAM、InnoDB、MEMORY等。
 - 慢查询日志 (slow query log) 用于 SQL **性能分析**
 - 一般查询日志 (general log) 用于记录所有的 SQL 语句
 - 二进制日志 (binlog) 用于**主从复制和数据恢复** 【记录所有`修改`数据库状态的 SQL 语句，以及每个语句的执行时间，如 INSERT、UPDATE、DELETE 等，但不包括 SELECT 和 SHOW 这类的操作】
-- 重做日志 (redo log) 用于保证事务持久性 【记录对于 InnoDB 表的每个`写操作`，不是 SQL 级别的，而是`物理级别的`，主要用于崩溃恢复】
+- 重做日志 (redo log) 用于保证`事务持久性` 【记录对于 InnoDB 表的每个`写操作`，不是 SQL 级别的，而是`物理级别的`，主要用于崩溃恢复】
 - 回滚日志 (undo log) 用于**事务回滚**和 `MVCC(Multi-Version Concurrency Control, 多版本并发控制)` 【Undo Log 存储了数据的所有历史版本，为 MVCC 提供了时间机器，确保读操作可以获取到事务开始时的数据“快照”，从而实现非阻塞的并发读写】
 
 #### 1.1 重点来讲讲 binlog?
@@ -267,4 +267,180 @@ mysql -u root -p < full_backup.sql
 mysqlbinlog --start-datetime="2025-03-13 14:00:00" --stop-datetime="2025-03-13 15:00:00" binlog.000001 | mysql -u root -p
 ```
 
+:::tip
 如果要搭建主从复制，就可以让从库定时读取主库的 binlog。
+:::
+
+---
+
+MySQL提供了`三种格式`的binlog：
+
+- Statement：SQL语句级别
+- Row：行级别
+- Mixed：混合模式(默认是row级别)
+
+那从后缀上看，binlog文件又分为两类：
+
+- .index：`索引文件`，记录了所有 .0000xx 文件的列表
+- .0000xx：`二进制日志文件`，真正存储了实际的binlog记录内容的文件，被.index文件管理
+
+---
+
+binlog 默认是关闭的。生产环境中是一定要启用的，可以通过在 `my.cnf` 文件中配置 `log_bin` 参数，以启用 binlog。
+
+```sql
+log_bin= mysql-bin # 开启binlog，文件名字将为 mysql-bin.000001, mysql-bin.000002 ...
+
+max_binlog_size= 104857600 # 设置单个binlog文件的最大字节数量为 100MB
+
+expire_logs_days= 7 # 设置binlog文件的过期时间为7天，超过这个时间的binlog文件将被自动删除
+
+binlog-do-db= database_name # 只记录指定数据库的更改操作到binlog中
+binlog-ignore-db= database_name # 忽略指定数据库的更改操作，不记录到binlog中
+
+sync_binlog= 1 # 每写缓冲多少次，就同步一次到磁盘，1表示每次写入都同步，提高数据安全性，但可能影响性能（默认值是0）
+
+```
+
+#### 1.2 binlog 的配置参数都了解哪些？
+
+如上。
+
+#### 1.3 都有 binlog 了，为什么还要 redo log 和 undo log？
+
+_binlog 属于 server 层，与存储引擎无关，无法直接操作物理数据页。_  
+redo log 和 undo log 才属于 InnoDB 存储引擎层，直接操作物理数据页。
+
+具体举例. 比如我:
+
+```bash
+UPDATE employees
+SET salary = salary * 1.1
+WHERE department = 'Sales';
+COMMIT;
+```
+
+刚刚commit成功后，binlog 会记录这条 SQL 语句：
+
+```sql
+UPDATE employees SET salary = salary * 1.1 WHERE department = 'Sales';
+```
+
+此时，在数据页还没来得及写入磁盘前，数据库崩溃了。
+
+1. binlog 要从第一条 binlog event 开始重放，无法只恢复“一个 dirty page”
+2. binlog 是 server 层面、逻辑级别的日志，无法定位“哪个具体的物理数据page的哪个位置的字节”需要恢复
+3. binlog 重放可能会引起数据不一致：
+    - UPDATE 的时候可能已经修改了header了，然后crash
+    - 此时页面是一个结构损坏、无法解析的状态
+    - binlog 再来执行一次，会炸库，因为 SQL 无法解析这个损坏的页面
+
+:::caution 三者的必要性
+
+总得来说，我们需要：
+
+1. undo log 来 **撤销未提交的事务**
+2. redo log 来 **恢复已提交，但未刷盘的事务**
+3. binlog 来 **逻辑的记录整个SQL或者行变化**
+
+执行顺序是：
+
+事务开始/创建事务对象 -> 读入数据页到buffer pool -> 生成 undo log -> 修改数据页 -> 生成 redo log (prepare 状态) -> MySQL 写 binlog -> redo log 变为 commit 状态 (真正的`提交事务`) -> 后台异步将 redo log 刷盘 -> 后台异步将数据页刷盘
+
+p.s. 我们说的数据库都是在 buffer pool (内存缓冲池) 里操作数据页的，只有后台异步刷盘的时候，才会把数据页写回磁盘。磁盘的目的只是持久化存储，**平时的读写都是在内存中完成的**。
+:::
+
+p.s. 三者的具体形式如下：
+
+```sql
+-- Binlog
+# SQL 语句级别
+UPDATE employees SET salary = salary * 1.1 WHERE department = 'Sales';
+# row 级别
+table employees {
+	id: 101,
+	salary: 5500.00 -> 6050.00
+}
+
+-- Redo Log
+page 0x0001 {
+	offset 0x0100: 5500.00 -> 6050.00
+}
+
+-- Undo Log
+id: 101, salary: 6050.00 -> 5500.00
+```
+
+#### 1.4 redo log 的工作机制？
+
+当事务启动时，MySQL 会为该事务分配一个唯一标识符。
+
+在事务执行过程中，每次对数据进行修改，MySQL 都会生成一条 Redo Log，记录修改前后的数据状态。
+
+1. 这些 Redo Log 首先会被写入内存中的 `Redo Log Buffer`
+2. 当事务提交时，MySQL 会将 Redo Log Buffer 中的内容刷新到磁盘上的 Redo Log 文件中
+3. 只有当 Redo Log 被成功写入磁盘后，事务才被认为是提交成功的
+
+**详情可见上面的 1.3 小节中的执行顺序部分**
+
+当 MySQL 崩溃重启时，会先检查 Redo Log:
+
+- 对于已经提交的事务，mysql 会重放 Redo Log
+- 对于未提交的事务，mysql 会通过 Undo Log 来回滚这些修改
+
+---
+
+Redo Log 通常采用**循环写入**的方式，当文件写满后会覆盖最早的日志记录，以节省磁盘空间。
+
+于是为了避免覆盖掉还未应用的 Redo Log，MySQL 会定期将内存中的数据页刷新到磁盘上，这个过程称为 `Checkpoint`。  
+重启时，只需要从 `Checkpoint 之后`的 Redo Log 开始重放即可。
+
+#### 1.5 redo log 文件的大小是固定的吗？
+
+redo log 文件是固定大小的，通常配置为一组文件，使用环形方式写入，旧的日志会在空间需要时被覆盖。
+
+![redo log 环形写入示意图](https://jcqn.oss-cn-beijing.aliyuncs.com/WORK/MySQL_3.png)
+
+命名方式 `ib_logfile0`, `ib_logfile1` ... `ib_logfileN`  
+默认是 2 个文件，每个 48 MB. 可以通过 `innodb_log_files_in_group` 参数配置文件个数；通过 `innodb_log_file_size` 参数配置每个文件的大小。
+
+#### 1.6 WAL?
+
+WAL (Write-Ahead Logging)，预写日志。
+
+预写日志是 `InnoDB` 实现事务持久化的核心机制，它的思想是：**先写日志再刷磁盘**。即在修改数据页之前，**先将修改记录写入 Redo Log**。
+
+这样的话，即使在数据页还没来得及写入磁盘前，数据库直接就崩溃了，MySQL 也可以通过 Redo Log 来恢复数据。
+
+### 2. 为什么要两阶段提交？
+
+1.3 中已经提到，MySQL 的事务提交是分为两个阶段的：
+
+1. 读入 buffer pool
+2. undo
+3. 修改data page
+4. redo log (prepare)
+5. 写 binlog
+6. redo log (commit)
+
+这样设计的目的是为了保证`数据的一致性`。
+
+:::note 为什么2PC能保证 redo log 和 binlog 一致性?
+
+![crash points](https://jcqn.oss-cn-beijing.aliyuncs.com/WORK/MySQL_4.png)
+
+1. 假设MySQL在预写 redo log 和写 binlog 之间崩溃了：  
+   MySQL 重启后，发现 redo log 处于 prepare 状态，没有 commit，那么就不会应用这些 redo log；  
+   同时 binlog 也还没有写入数据。
+
+2. 假设MySQL在写 binlog 和提交 redo log 之间崩溃了：  
+   MySQL 重启后，发现 redo log 处于 commit 状态，那么就会应用这些 redo log, InnoDB会提交事务；
+   同时 binlog 也已经写入数据，所以从库也会同步到该事务的数据。
+
+一损俱损，一荣俱荣了属于是。
+
+:::
+
+#### 2.1 XID
+
+XID (Transaction ID)，binlog 中用来标识`事务提交`的唯一标识符。
