@@ -36,7 +36,7 @@ tags:
 上节课遗留了一个问题：子弹发射后会立即与玩家发生碰撞，导致子弹被销毁或推开玩家。
 
 **问题原因：**  
-虽然在 **Edit -> Project Settings -> Physics 2D** 中设置了碰撞矩阵，禁用了 Player 和 PlayerProjectile 之间的碰撞，但 Player 物体的 Layer 没有正确设置为 `Player`。
+虽然在 `Edit -> Project Settings -> Physics 2D` 中设置了碰撞矩阵，禁用了 Player 和 PlayerProjectile 之间的碰撞，但 Player 物体的 Layer 没有正确设置为 `Player`。
 
 #### 1.2 解决方案
 
@@ -71,7 +71,7 @@ tags:
 
 #### 2.2 创建跳跃动画过渡
 
-1. 打开 **Window -> Animation -> Animator**
+1. 打开 `Window -> Animation -> Animator`
 
 2. 创建从 **Any State** 到 **Jump** 的过渡：
     - 右键点击 **Any State**
@@ -404,7 +404,7 @@ void Start()
 
 #### 5.1 创建菜单 UI 结构
 
-1. 在 Hierarchy 中右键：**UI -> Panel**，重命名为 `Panel - Menu`
+1. 在 Hierarchy 中右键：`UI -> Panel`，重命名为 `Panel - Menu`
 
 2. 配置 Panel 属性：
    - 重置锚点和位置
@@ -416,7 +416,7 @@ void Start()
    - `Options`（选项菜单）
    - `Level Select`（关卡选择菜单）
 
-4. 在每个子菜单中添加按钮（**UI -> Button - TextMeshPro**）：
+4. 在每个子菜单中添加按钮（`UI -> Button - TextMeshPro`）：
 
 **Main Menu 按钮：**
 - Resume（继续游戏）
@@ -511,7 +511,7 @@ void Update()
 
 #### 5.4 绑定按钮事件
 
-选中每个按钮，在 Inspector 的 **Button -> On Click ()** 中添加事件 (下图为示例)：
+选中每个按钮，在 Inspector 的 `Button -> On Click ()` 中添加事件 (下图为示例)：
 
 ![Menu Button Binding](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class9_MenuButtonBinding.png)
 

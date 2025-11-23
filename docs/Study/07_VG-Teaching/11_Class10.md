@@ -408,7 +408,7 @@ Camera 的 Size 表示**从相机中心到上下边界的距离**，即视野高
 
 1. **Follow**：拖拽 `Player2` 到此槽位，跟随 Player2
 
-2. **Lens -> Orthographic Size**：设置为 2.5（与上半屏保持一致）
+2. `Lens -> Orthographic Size`：设置为 2.5（与上半屏保持一致）
 
 :::note Orthographic vs Perspective
 
@@ -521,7 +521,7 @@ Cinemachine 可以感知关卡边界，限制相机移动范围：
 **6. 解包预制体：**
 
 - 右键点击 Player
-- 选择 **Prefab -> Unpack Completely**
+- 选择 `Prefab -> Unpack Completely`
 - 切断与 SplitScreen 预制体的联系，使其成为`独立物体`
 
 #### 7.3 创建新的 PlayerController

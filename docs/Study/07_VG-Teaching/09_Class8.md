@@ -404,7 +404,7 @@ void Update()
 
 #### 6.5 构建动画状态机
 
-1. 打开 **Window -> Animation -> Animator**
+1. 打开 `Window -> Animation -> Animator`
 
 2. 选中场景中的 Player 物体，Animator 窗口会显示所有动画状态
 

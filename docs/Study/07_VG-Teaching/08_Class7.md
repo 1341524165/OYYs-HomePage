@@ -46,7 +46,7 @@ tags:
 | Filter Mode           | Bilinear |
 | Compression           | None     |
 
-然后点击 **Sprite Editor -> Slice -> Type: Automatic -> Apply**
+然后点击 `Sprite Editor -> Slice -> Type: Automatic -> Apply`
 
 4. 选中 target（准心），设置如下：
 
@@ -60,10 +60,10 @@ tags:
 #### 1.2 图层与物理设置
 
 1. 添加图层 (Layers)：  
-   在Inspector窗口中，点击**Layers -> Edit Layers**，新增三个图层 `Ground`、`PlayerProjectile`、`Player`。
+   在Inspector窗口中，点击`Layers -> Edit Layers`，新增三个图层 `Ground`、`PlayerProjectile`、`Player`。
 
 2. 设置碰撞矩阵：  
-   前往 **Edit -> Project Settings -> Physics 2D**，修改碰撞矩阵，取消 `PlayerProjectile` 与 `Player`、以及 `PlayerProjectile` 与其自身的碰撞交互。
+   前往 `Edit -> Project Settings -> Physics 2D`，修改碰撞矩阵，取消 `PlayerProjectile` 与 `Player`、以及 `PlayerProjectile` 与其自身的碰撞交互。
 
 ### 2. 核心游戏对象（Prefabs）的创建
 
@@ -222,7 +222,7 @@ namespace Platformer
 
 为了让 LoadScene 函数能够找到要加载的场景，我们必须：
 
-1. 前往 **File -> Build Settings**
+1. 前往 `File -> Build Settings`
 2. 点击 **Add Open Scenes** 将当前场景（Q2）添加到列表中。
 
 ### 6. 实现鼠标瞄准系统
