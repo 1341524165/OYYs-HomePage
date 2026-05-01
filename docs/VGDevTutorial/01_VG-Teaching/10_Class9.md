@@ -3,9 +3,9 @@ sidebar_position: 10
 id: Class 9
 title: Class 9
 tags:
-  - Study
-  - Unity
-  - Video Game Teaching
+    - Study
+    - Unity
+    - Video Game Teaching
 ---
 
 # Class 9 - Platformer Part 3: Audio, UI & Data Persistence
@@ -136,10 +136,10 @@ animator.SetInteger("JumpsLeft", jumpsLeft);
 而 `jumpsLeft` 是我们自己声明的变量，在 Update 中更新，**不涉及物理系统**，因此没有必要放在 FixedUpdate 中。
 :::
 
-
 #### 2.5 匹配动画播放速度与移动速度
 
 为了避免"滑步"现象（移动速度与动画播放速度不匹配），可以根据实际速度调整动画播放速度：
+
 ```csharp title="PlayerController.cs"
 void FixedUpdate()
 {
@@ -154,12 +154,12 @@ void FixedUpdate()
 }
 ```
 
-
 ### 3. 实现音效系统 (Audio System)
 
 #### 3.1 导入音频素材
 
 将三个 `.wav` 音频文件导入到 `Assets/Audio/` 文件夹：
+
 - `shoot.wav` - 发射子弹音效
 - `hit.wav` - 击中目标音效
 - `miss.wav` - 未击中目标音效
@@ -175,30 +175,33 @@ Unity 的音频系统包含三个主要组件：
 3. **Audio Listener（音频监听器）**：用于接收声音的组件，相当于玩家的"耳朵"
 
 :::caution Audio Listener 的重要规则
+
 - 每个场景中**同一时间只能有一个激活的 Audio Listener**
 - 通常挂载在 Main Camera 上
 - 如果场景中有多个 Listener 被激活，Unity 会报错
 - 如果需要切换 Listener，必须先禁用当前的再启用新的
-:::
+  :::
 
 #### 3.3 为子弹添加发射音效
 
 1. 选中 Projectile Prefab，添加 **Audio Source** 组件
 
 2. 配置 Audio Source 属性：
-   - 勾选 **Play On Awake**（子弹生成时立即播放）
-   - Audio Clip：拖拽 `shoot.wav` 到此槽位
-   - Spatial Blend：设置为 **0 (2D)**
+    - 勾选 **Play On Awake**（子弹生成时立即播放）
+    - Audio Clip：拖拽 `shoot.wav` 到此槽位
+    - Spatial Blend：设置为 **0 (2D)**
 
 :::info Spatial Blend: 2D vs 3D
+
 - 2D (值为 0)：声音不受距离影响，音量恒定，适合 2D 游戏
 - 3D (值为 1)：声音根据 Audio Listener 与 Audio Source 的距离变化，产生立体声效果
 
 **为什么 2D 游戏就得用 2D 模式？**
+
 - 2D 游戏没有 Z 轴深度，但摄像机的 Z 坐标通常是 -10
 - 使用 3D 模式可能导致`距离计算错误`，产生意外的音量变化
 - _如果需要在 2D 中模拟距离效果，应通过代码控制 `audioSource.volume`_
-:::
+  :::
 
 #### 3.4 创建 SoundManager 管理全局音效
 
@@ -251,13 +254,14 @@ namespace Platformer
 ```
 
 :::info PlayOneShot vs Play
+
 - `Play()`: 会停止当前正在播放的音效，然后播放新音效
 - `PlayOneShot(AudioClip)`: 不会打断当前音效，可以同时播放多个音效，适合短促的游戏音效
-:::
+  :::
 
 4. 在 Unity 编辑器中：
-   - 将 `hit.wav` 拖拽到 hitSound 槽位
-   - 将 `miss.wav` 拖拽到 missSound 槽位
+    - 将 `hit.wav` 拖拽到 hitSound 槽位
+    - 将 `miss.wav` 拖拽到 missSound 槽位
 
 #### 3.5 在碰撞时触发音效
 
@@ -275,7 +279,7 @@ private void OnCollisionEnter2D(Collision2D other)
     {
         SoundManager.instance.PlaySoundMiss();
     }
-    
+
     Destroy(gameObject);
 }
 ```
@@ -320,6 +324,7 @@ namespace Platformer
 ```
 
 在 `Target.cs` 中，击中目标时增加分数：
+
 ```csharp title="Target.cs"
 private void OnCollisionEnter2D(Collision2D other)
 {
@@ -337,14 +342,14 @@ private void OnCollisionEnter2D(Collision2D other)
 1. 在 Hierarchy 中右键：`UI -> Text - TextMeshPro`
 
 2. 配置 Text 属性：
-   - 设置锚点为顶部中心
-   - 调整位置和大小
-   - 设置字体大小和颜色
-   - 文本内容：`Score: 0`
+    - 设置锚点为顶部中心
+    - 调整位置和大小
+    - 设置字体大小和颜色
+    - 文本内容：`Score: 0`
 
 3. 选中 Canvas，设置 Canvas Scaler：
-   - UI Scale Mode: Scale With Screen Size
-   - Reference Resolution: 1920 x 1080
+    - UI Scale Mode: Scale With Screen Size
+    - Reference Resolution: 1920 x 1080
 
 4. 将 Text 对象拖拽到 Player 的 scoreUI 槽位
 
@@ -353,6 +358,7 @@ private void OnCollisionEnter2D(Collision2D other)
 **PlayerPrefs** 是 Unity 提供的简单本地存储系统，可以保存少量的键值对数据。
 
 **存储机制：**
+
 - Windows：写入注册表
 - macOS：创建 `.plist` 文件存储在用户目录下
 - 数据在游戏关闭后依然保留
@@ -366,10 +372,10 @@ private void OnCollisionEnter2D(Collision2D collision)
     {
         // 增加分数
         PlayerController.instance.score += 10;
-        
+
         // 新增代码在这一行：保存分数到本地
         PlayerPrefs.SetInt("Score", PlayerController.instance.score);
-        
+
         Destroy(gameObject);
     }
 }
@@ -383,13 +389,14 @@ void Start()
     _rigidbody2D = GetComponent<Rigidbody2D>();
 	sprite = GetComponent<SpriteRenderer>();
     _animator = GetComponent<Animator>();
-    
+
     // 新增代码在这一行：从本地读取保存的分数，如果不存在则默认为 0
     score = PlayerPrefs.GetInt("Score", 0);
 }
 ```
 
 :::note PlayerPrefs 常用方法
+
 - SetInt(string key, int value): 保存整数
 - SetFloat(string key, float value): 保存浮点数
 - SetString(string key, string value): 保存字符串
@@ -398,7 +405,7 @@ void Start()
 - GetString(string key, string defaultValue): 读取字符串
 - DeleteKey(string key): 删除指定键值对
 - DeleteAll(): 删除所有保存的数据
-:::
+  :::
 
 ### 5. 构建暂停菜单与子菜单
 
@@ -407,27 +414,30 @@ void Start()
 1. 在 Hierarchy 中右键：`UI -> Panel`，重命名为 `Panel - Menu`
 
 2. 配置 Panel 属性：
-   - 重置锚点和位置
-   - 设置大小：640 x 480
-   - （可选）在 Image 组件中调整颜色透明度
+    - 重置锚点和位置
+    - 设置大小：640 x 480
+    - （可选）在 Image 组件中调整颜色透明度
 
 3. 在 Panel - Menu 下创建三个空物体作为子菜单容器：
-   - `Main Menu`（主菜单）
-   - `Options`（选项菜单）
-   - `Level Select`（关卡选择菜单）
+    - `Main Menu`（主菜单）
+    - `Options`（选项菜单）
+    - `Level Select`（关卡选择菜单）
 
 4. 在每个子菜单中添加按钮（`UI -> Button - TextMeshPro`）：
 
 **Main Menu 按钮：**
+
 - Resume（继续游戏）
 - Options（选项）
 - Levels（关卡选择）
 
 **Options 按钮：**
+
 - Back（返回）
 - Reset Score（重置分数）
 
 **Level Select 按钮：**
+
 - Back（返回）
 - Level 1（关卡 1）
 
@@ -444,7 +454,6 @@ MenuController 在 Awake 中调用 `gameObject.SetActive(false)` 隐藏自己后
 
 但通过**静态实例**，其他脚本仍然可以调用 MenuController 的方法，这正是静态实例的重要优势之一。
 :::
-
 
 ```csharp title="MenuController.cs"
 namespace Platformer
@@ -504,7 +513,7 @@ void Update()
     {
         MenuController.instance.Show();
     }
-    
+
     // ... (其他代码)
 }
 ```
@@ -516,15 +525,18 @@ void Update()
 ![Menu Button Binding](https://jcqn.oss-cn-beijing.aliyuncs.com/game_design_courseware/01_image/Class9_MenuButtonBinding.png)
 
 **Main Menu 按钮绑定：**
+
 - **Resume**：拖拽 `Panel - Menu` → 选择 `MenuController.Hide`
 - **Options**：拖拽 `Panel - Menu` → 选择 `MenuController.ShowOptionsMenu`
 - **Levels**：拖拽 `Panel - Menu` → 选择 `MenuController.ShowLevelSelectMenu`
 
 **Options 按钮绑定：**
+
 - **Back**：拖拽 `Panel - Menu` → 选择 `MenuController.ShowMainMenu`
 - **Reset Score**：需要先在 PlayerController 中添加函数
 
 在 `PlayerController.cs` 中添加重置分数的方法：
+
 ```csharp title="PlayerController.cs"
 public void ResetScore()
 {
@@ -538,17 +550,19 @@ public void ResetScore()
 然后绑定 Reset Score 按钮：拖拽 **Player 物体** → 选择 `PlayerController.ResetScore`
 
 **Level Select 按钮绑定：**
+
 - **Back**：拖拽 `Panel - Menu` → 选择 `MenuController.ShowMainMenu`
 - **Level 1**：需要先添加加载关卡的函数。
 
 在 `MenuController.cs` 中添加：
+
 ```csharp title="MenuController.cs"
 using UnityEngine.SceneManagement;  // 添加场景管理命名空间
 
 public class MenuController : MonoBehaviour
 {
     // ... (之前的代码)
-    
+
     public void LoadLevel()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -558,12 +572,12 @@ public class MenuController : MonoBehaviour
 
 然后绑定 Level 1 按钮：拖拽 `Panel - Menu` → 选择 `MenuController.LoadLevel`
 
-
 ### 6. 实现游戏暂停机制
 
 #### 6.1 阻止玩家输入
 
 在 `PlayerController.cs` 中添加暂停标志：
+
 ```csharp title="PlayerController.cs"
 public bool isPaused = false;
 
@@ -571,7 +585,7 @@ void Update()
 {
     // 在Update函数的最开始就做判定：如果游戏暂停，直接返回，跳过所有输入检测
     if (isPaused) return;
-    
+
     // ... (ESC呼出Menu、移动、瞄准、射击、跳跃代码)
 }
 ```
@@ -579,6 +593,7 @@ void Update()
 #### 6.2 在菜单显示/隐藏时控制暂停状态
 
 修改 `MenuController.cs` 的 Show 和 Hide 方法，控制暂停状态(刚创建的isPaused变量)：
+
 ```csharp title="MenuController.cs"
 public void Show()
 {
@@ -593,7 +608,7 @@ public void Show()
 public void Hide()
 {
     gameObject.SetActive(false);
-    
+
     // 继续游戏
     Time.timeScale = 1;
     if(PlayerController.instance != null)
