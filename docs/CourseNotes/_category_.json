@@ -1,8 +1,8 @@
 {
-	"label": "Study",
+	"label": "CourseNotes",
 	"position": 3,
 	"link": {
 		"type": "generated-index",
-		"description": "Notes"
+		"description": "本硕课程笔记"
 	}
 }
