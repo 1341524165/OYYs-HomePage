@@ -3,9 +3,9 @@ sidebar_position: 10
 id: Class 9
 title: Class 9
 tags:
-	- Study
-	- Unity
-	- Video Game Teaching
+  - Study
+  - Unity
+  - Video Game Teaching
 ---
 
 # Class 9 - Platformer Part 3: Audio, UI & Data Persistence
