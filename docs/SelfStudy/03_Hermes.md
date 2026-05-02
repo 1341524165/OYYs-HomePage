@@ -91,7 +91,37 @@ pip install git+[https://github.com/NousResearch/hermes-agent.git](https://githu
 
 ---
 
-## 四、 遭遇问题记录与系统级洞察
+## 四、 进阶集成：Open-WebUI 接入与 Gateway 微服务架构
+
+在完成纯本地命令行调用后，我们可以通过 Docker 部署 Open-WebUI 并利用 Hermes 的 Gateway 模式，实现网页端图形化的高级交互体验。
+
+### 1. Open-WebUI 无法连接本地 Ollama
+
+- **现象**：在 WebUI 中填写 `https://127.0.0.1:11434` 无法打通本地大模型。
+- **根因**：Docker 容器内的 `127.0.0.1` 指向容器自身的内部隔离网段，且本地推理服务通常不支持 HTTPS。
+- **对策**：使用 Docker 虚拟网桥的魔法域名，将接口地址改为 `http://host.docker.internal:11434`。
+
+### 2. Docker 环境导致 C 盘空间吞噬综合征
+
+- **现象**：Docker 拉取的镜像和数据卷迅速塞满系统盘。
+- **根因**：WSL2 引擎将虚拟磁盘 (`.vhdx`) 默认存放在 `AppData` 深处。
+- **对策**：利用 Docker Desktop GUI -> Settings -> Resources -> Virtual disk，一键将磁盘镜像无损迁移至 D 盘工作区。
+
+### 3. Hermes Agent 服务化失败 (API 拒绝访问)
+
+- **现象**：试图让 Open-WebUI 像调用 OpenAI 接口一样调用 Hermes 时，连接失败。
+- **根因**：Hermes 默认是客户端工具，不监听外部端口。
+- **对策**：在环境变量或 `.env` 中追加 `API_SERVER_ENABLED=true` 和 `API_SERVER_KEY=xxx`，使用 `hermes gateway` 启动常驻微服务。
+
+### 4. 满屏 HTTP 400: model does not support tools
+
+- **现象**：打通 Gateway 后，一发消息 PowerShell 端就疯狂报错 400，前端毫无响应。
+- **根因**：Hermes 的 `config.yaml` 中，模型字段错误地写成了 `name: qwen3:8b`，而框架要求使用 `model` 键。
+- **对策**：将 `name` 改成 `model: qwen3:8b`（根据实际使用的模型名称修改），并重启 Gateway 微服务进程。
+
+---
+
+## 五、 遭遇问题记录与系统级洞察
 
 ### 1. 模型逻辑冲突：DeepSeek-R1 报错
 
@@ -147,7 +177,7 @@ pip install git+[https://github.com/NousResearch/hermes-agent.git](https://githu
 
 ---
 
-## 五、 环境遗迹清理 (WSL2 发行版还原)
+## 六、 环境遗迹清理 (WSL2 发行版还原)
 
 若此前尝试过 WSL 部署，请执行以下命令确保系统无冲突且保持“环境洁癖”：
 
