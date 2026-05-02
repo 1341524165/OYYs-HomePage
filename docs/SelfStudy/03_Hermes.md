@@ -1,3 +1,14 @@
+---
+sidebar_position: 3
+id: Hermes Agent Windows Native Deployment
+title: Hermes Agent (Windows Native) Deployment
+tags:
+    - Work
+    - Hermes Agent
+    - Deployment
+    - Troubleshooting
+---
+
 # Hermes Agent (Windows Native) 零起点部署与实战排查全手册
 
 ---

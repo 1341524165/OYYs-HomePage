@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 2
 id: Eight-legged Essay
 title: Eight-legged Essay
 tags:
