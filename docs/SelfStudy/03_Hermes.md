@@ -1,75 +1,153 @@
-# Hermes Agent (Windows+WSL2+Docker) 本地化部署与排查全记录
-
-## 一、 完整安装与部署全流程
-
-此架构采用“宿主物理算力 + 虚拟网卡穿透 + 容器安全隔离”的混合部署模式，将大模型推理与 Agent 代码执行环境进行解耦。
-
-**1. 准备物理底座与沙箱环境**
-
-- **拉起 WSL2**：在管理员 PowerShell 执行 `wsl --install`，安装原生 Ubuntu 环境。
-- **配置沙箱**：安装 Docker Desktop，在设置中开启 `Use the WSL 2 based engine`，并打开 Ubuntu 发行版的集成开关，确保隔离沙箱就绪。
-
-**2. 部署 Ollama 推理服务**
-
-- **安装**：下载并安装 Windows 原生版 Ollama。
-- **配置 GUI 面板（关键）**：打开 Ollama 系统托盘的 Settings 面板：
-    - 设置 `Model location` 为自定义大容量路径（如 `D:\OllamaModels`）。
-    - 开启 `Expose Ollama to the network` 允许跨网段调用。
-- **拉取工作模型**：在 PowerShell 执行 `ollama pull qwen2.5-coder:14b`（本地 Tool Calling 的最优解）。
-
-**3. 构建隔离的 Python 运行环境 (WSL2 内)**
-
-- **升级 Python 工具链**：引入 deadsnakes PPA (`sudo add-apt-repository ppa:deadsnakes/ppa`)，安装 Python 3.11 (`sudo apt install python3.11 python3.11-venv -y`)。
-- **隔离环境**：创建并激活专属虚拟环境：
-    ```bash
-    python3.11 -m venv ~/hermes_env
-    source ~/hermes_env/bin/activate
-    ```
-
-**4. 源码编译安装 Hermes**
-
-- 官方未在 PyPI 注册该包，需直接从 GitHub 仓库拉取并编译底层依赖：
-    ```bash
-    pip install git+[https://github.com/NousResearch/hermes-agent.git](https://github.com/NousResearch/hermes-agent.git)
-    ```
-
-**5. 核心调度引擎初始化 (`hermes setup`)**
-在激活的虚拟环境中，执行初始化向导并严格按照物理架构进行路由配置：
-
-- **Provider**: 选择 `Custom endpoint (enter URL manually)`。
-- **Base URL**: 填入网桥物理 IP `http://172.27.0.1:11434/v1`（绕过 DNS 解析坑）。
-- **API Key**: 填入 `ollama` 占位符绕过校验。
-- **Model Name**: 填入 `qwen2.5-coder:14b`。
-- **Execution Backend**: 选择 `Docker`，并开启文件系统持久化 (`yes`)。
-- **Context Compression**: 设置为 `0.8` 以保留更多上下文调试记忆。
-- **Session Reset**: 选择 `Never auto-reset`，由开发者完全掌控生命周期。
+# Hermes Agent (Windows Native) 零起点部署与实战排查全手册
 
 ---
 
-## 二、 疑难杂症与底层排查记录
+## 一、 环境底座：Ollama 推理服务部署
 
-在系统级开发和打通跨网段通信时，我们遇到并解决了以下三大类核心问题。
+### 1. 软件安装与路径迁移
 
-### 📌 类别 1：模型协议与能力匹配
+- 从官网下载并安装 Windows 原生版 Ollama。
+- **关键配置（GUI 优先）**：
+    - 打开系统托盘的 Ollama Settings 面板。
+    - **模型迁移**：将 `Model location` 修改为非系统盘路径（如 `D:\OllamaModels`），彻底告别 C 盘空间焦虑。
+    - **网络开放**：勾选 `Expose Ollama to the network`。这不仅是为了局域网调用，更是为了确保本地不同虚拟环境与进程间通信不受防火墙拦截。
 
-| 遭遇问题 / 现象                                                                             | 底层原因分析                                                                                                                          | 最终解决方案                                                                                            |
-| :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------ |
-| **R1 工具调用报错**<br>`HTTP 400 Bad Request: model deepseek-r1:14b does not support tools` | 纯推理模型（DeepSeek-R1 蒸馏版）缺乏标准 JSON/Function Calling 微调，Ollama API 网关直接将无法解析的工具请求拦截。                    | 放弃强制修改 Agent 提示词解析框架的折腾路线，**切换底层模型**至原生精通工具调用的 `qwen2.5-coder:14b`。 |
-| **模型选择困难**<br>Llama 3 跑分高但不确定是否适合，云端模型烧 Token 成本高。               | Llama 3 (8B) 代码能力深度不足；云端 API (Claude 3.5 / DeepSeek-V3) 虽然极度聪明，但在长上下文闭环测试中成本不可控且破坏本地沙箱隐私。 | 锁定本地 32GB 内存极限，选择在代码生成和系统调度上综合实力最强的 **Qwen 2.5 Coder**。                   |
+### 2. 核心模型拉取
 
-### 📌 类别 2：资源分配与文件系统（幽灵数据）
+在 PowerShell 执行以下命令，部署目前本地 Tool Calling 领域最强且适配性最好的模型：
 
-| 遭遇问题 / 现象                                                                                                                 | 底层原因分析                                                                                                                           | 最终解决方案                                                                                                                     |
-| :------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| **内存溢出 (OOM) 崩溃**<br>执行 `ollama run deepseek-r1:32b` 后终端抛出 `Error 500: llama runner process has terminated`。      | 32B 模型量化后强占超 20GB 内存，突破 32GB 物理机极限（需兼顾 Windows、WSL、Docker 占用），系统无法分配连续内存块直接 Kill 进程。       | **算力降级**，采用 14B 参数量级模型，为宿主系统和高并发压测沙箱预留充足内存。                                                    |
-| **配置覆盖导致模型回流 C 盘**<br>已配置 Windows 环境变量迁移模型，但新模型依然下到了 C 盘，且 `ollama list` 查不到 D 盘的模型。 | Ollama 最新版 **GUI Settings 面板优先级高于系统环境变量**。开机自启进程读取 GUI 配置覆盖了底层注入，且父子进程的环境变量未能及时刷新。 | 彻底废弃命令行环境变量注入，直接在 **Ollama GUI 面板**中修改 `Model location`，并手动清理注册表/底层环境变量以防止多处配置冲突。 |
-| **幽灵文件占用磁盘**<br>手动剪切模型到 D 盘后，执行 `ollama rm deepseek-r1:14b` 提示 `not found`，但磁盘空间未释放。            | 物理迁移导致 Ollama 数据账本（Manifest）与物理数据（Blobs）脱节。Ollama 账本找不到该模型故报错，但 9GB 的权重块依然留在文件系统中。    | 深入 `D:\OllamaModels\blobs`，通过比对**修改时间戳**和文件大小，手动 `Shift+Delete` 清理旧模型的超大哈希文件。                   |
+```powershell
+ollama pull qwen2.5-coder:14b
+```
 
-### 📌 类别 3：跨网段通信与底层依赖环境
+---
 
-| 遭遇问题 / 现象                                                                                                                | 底层原因分析                                                                                               | 最终解决方案                                                                                                                  |
-| :----------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| **环境构建失败**<br>在 Ubuntu 终端报错 `No matching distribution found for hermes-agent` 及 Python `3.10.12 not in '>=3.11'`。 | Hermes 核心库未上架 PyPI 且强制依赖 Python 3.11+ 的新语法特性，而 Ubuntu 22.04 原生环境版本过低。          | 接入 `deadsnakes PPA` 安装独立的 Python 3.11 环境，并通过 **Git 源码直连** (`pip install git+...`) 完成编译安装。             |
-| **网络防线拦截**<br>配置阶段警告 `could not verify this endpoint`，或测试时触发 `ERR_UNSAFE_PORT (2049)`。                     | Ollama 默认只监听 `127.0.0.1` 物理回环，WSL2 作为虚拟局域网发起的请求被宿主机网络防线静默丢弃（Dropped）。 | 纠正错误端口为 `11434`。在 Ollama GUI 面板开启 **`Expose Ollama to the network`** 允许外部/虚拟网卡访问。                     |
-| **DNS 解析穿透失败**<br>测试接口时出现严重超时 (`APITimeoutError`)，请求完全无响应。                                           | Docker 官方提供的魔法域名 `host.docker.internal` 在特定的 WSL 路由策略下 DNS 解析失效。                    | 执行 `ip route show` 抓取虚拟网桥的**真实物理 IP**（如 `172.27.0.1`），直接修改 Hermes 配置文件，绕过域名解析进行硬编码通信。 |
-| **环境丢失**<br>重启终端后输入指令报错 `Command 'hermes' not found`。                                                          | 新终端脱离了 Python 虚拟环境上下文。                                                                       | 每次使用前执行 `source ~/hermes_env/bin/activate` 唤醒环境（或写入 `.bashrc`）。                                              |
+## 二、 运行环境：Windows 原生 Python 隔离沙箱
+
+### 1. 基础工具安装
+
+- 安装 **Python 3.11** 或更高版本（安装时务必勾选 "Add Python to PATH"）。
+- 安装 **Git for Windows**。
+
+### 2. 创建并激活 D 盘虚拟环境
+
+建议将运行环境与代码库放在同一逻辑盘符，提高 I/O 效率并保持系统盘整洁：
+
+```powershell
+d:
+mkdir D:\HermesWorkspace
+cd D:\HermesWorkspace
+# 创建虚拟环境
+python -m venv hermes_env
+# 激活环境
+.\hermes_env\Scripts\activate
+```
+
+_(激活后提示符左侧应出现绿色 `(hermes_env)` 标识。)_
+
+---
+
+## 三、 核心部署：Hermes Agent 源码编译与向导配置
+
+### 1. 源码安装
+
+由于官方库更新频繁且对新语法有强依赖，建议通过 Git 直连安装以获取最新特性：
+
+```powershell
+pip install git+[https://github.com/NousResearch/hermes-agent.git](https://github.com/NousResearch/hermes-agent.git)
+```
+
+### 2. “上帝模式”初始化向导
+
+执行 `hermes setup` 命令，并严格按照以下配置项进行物理直连：
+
+| 配置项                   | 推荐输入值                    | 技术初衷                                                            |
+| :----------------------- | :---------------------------- | :------------------------------------------------------------------ |
+| **Provider**             | `Custom endpoint`             | 手动指定本地推理接口                                                |
+| **Base URL**             | `http://127.0.0.1:11434/v1`   | 绕过所有虚拟网桥，实现 0 延迟本地回环通信                           |
+| **API Key**              | `ollama`                      | 绕过本地接口鉴权                                                    |
+| **Model Name**           | `qwen2.5-coder:14b`           | 锁定具备原生函数调用能力的模型                                      |
+| **Select TTS provider**  | `10. Keep current (Edge TTS)` | 利用 Edge 免费接口实现高质量语音，还不用搞本地 TTS 模型抢显存。     |
+| **Terminal Backend**     | `7. Keep Current (Local)`     | **核心命门**：赋予 Agent 直接调用 PowerShell 和系统文件权限         |
+| **Context Length**       | `64000`                       | **必须填**：Hermes 强制要求最低 64K 窗口，留空会触发 32K 探测报错。 |
+| **Max Iterations**       | `90`                          | 设定防逻辑死循环的熔断上限                                          |
+| **Compression**          | `0.8`                         | 延迟触发记忆压缩，最大限度保留 Debug 日志堆栈                       |
+| **Session Reset**        | `4. Never auto-reset`         | 确保在处理长周期任务时 Agent 不会因超时失忆                         |
+| **Platforms**            | `[直接回车]`                  | 保持纯净本地运行，切断外部非法调用路径                              |
+| **Tools for CLI**        | `3, 4, 5` 其他自由            | 精简，剔除图像、语音、自动化点击、消息发送等易导致幻觉的臃肿工具。  |
+| **Browser Automation**   | `1. Local Browser`            | **纯本地运行**：调用本地 Headless Chromium，免费且无 API Key 依赖。 |
+| **Web Search & Extract** | `6. Skip`                     | 免费的duckduckgo也不错                                              |
+
+---
+
+## 四、 遭遇问题记录与系统级洞察
+
+### 1. 模型逻辑冲突：DeepSeek-R1 报错
+
+- **现象**：提示 `HTTP 400: model does not support tools`。
+- **根因**：最早用的 R1 蒸馏版模型侧重推理思维，缺乏标准的 JSON Schema 函数调用微调。
+- **对策**：切换至 **Qwen3.0** 系列，这是目前本地 Tool Calling Agent 比较稳定的驱动核心。
+
+### 2. 进程权限冲突：GUI 覆盖系统变量
+
+- **现象**：在 `.bashrc` 或`系统环境变量`里改了模型存储路径后，新模型依然回流 C 盘。
+- **根因**：Ollama GUI 版开机自启进程具有更高优先级，会忽略系统级环境变量。
+- **对策**：统一使用 **Ollama GUI 的 Settings 面板**进行配置，并重启进程。
+
+### 3. Windows 平台工具依赖安装失败 (WinError 2)
+
+- **现象**：配置 Local Browser 等工具时，打印 `Installing Node.js dependencies...` 后瞬间崩溃，报错 `FileNotFoundError: [WinError 2] 系统找不到指定的文件。`
+- **根因**：Node.js 在 Windows 下的真实可执行文件是 `npm.cmd`。虽然 Hermes 的源码在函数顶部已经利用 `shutil.which("npm")` 获取到了绝对路径并赋值给 `npm_bin` 变量，但在下方调用 `subprocess.run` 时却硬编码传入了字符串 `"npm"`。这种疏忽导致 Windows 无法直接识别命令。
+- **对策**：
+  最优雅且不破坏原意的解法，是直接修改报错信息中指向的源码文件（例如 `D:\HermesWorkspace\hermes_env\Lib\site-packages\hermes_cli\tools_config.py`，约在 485 行附近）：
+  将 `subprocess.run` 列表中硬编码的 `"npm"` 替换为变量 `npm_bin`。
+
+    ```python
+    # 修改前：
+    result = subprocess.run(["npm", "install", "--silent"], capture_output=True, text=True, cwd=str(PROJECT_ROOT))
+    # 修改后：
+    result = subprocess.run([npm_bin, "install", "--silent"], capture_output=True, text=True, cwd=str(PROJECT_ROOT))
+    ```
+
+    修改保存后，回到 PowerShell 重新执行 `hermes setup` 即可。
+
+### 4. 终端编码崩溃 (gbk codec can't decode)
+
+- **现象**：在下载 Chromium 等带有进度条或特殊符号的依赖时，提示 `Installing Chromium` 后瞬间崩溃报错 `UnicodeDecodeError: 'gbk' codec can't decode byte...`。
+- **根因**：中文版 Windows 的控制台默认编码是 GBK。原作者在使用 `subprocess.run(..., text=True)` 捕获终端输出时，没有明确指定 `encoding="utf-8"`。当安装脚本在控制台打印进度条或特殊符号（如 `✔`、`━`）时，Python 试图用 GBK 强行解码这些 UTF-8 字符，导致致命异常。这也是很多跨平台工具的通病。
+- **对策**：
+  不需要逐个去改源码里的 `encoding` 参数。我们可以利用 Python 的环境变量直接“降维打击”。
+  在执行配置前，先在 PowerShell 中强制开启 Python 的全局 UTF-8 模式：
+    ```powershell
+    $env:PYTHONUTF8="1"
+    hermes setup
+    ```
+    这会让 Python 在本次运行的整个生命周期内全面接管终端，默认使用 UTF-8 进行所有文本流读写，不仅杜绝崩溃，还能完美显示华丽的进度条和状态字符！
+
+### 5. 上下文窗口不足报错 (Context window below minimum)
+
+- **现象**：刚进入对话界面或执行 `hermes`，立马报错 `Model qwen2.5-coder:14b has a context window of 32,768 tokens, which is below the minimum 64,000 required`。
+- **根因**：Hermes 框架对上下文长度有**硬性底线要求（至少 64K）**，因为它需要极大的空间来存储浏览器的网页源码（DOM Tree）以及 Agent 的“内心思考过程”。如果我们在之前的向导中 `Context Length` 直接敲回车留空，系统会自动探测 Qwen2.5 的默认上报值（通常是 32K），从而触发这个安全拦截。
+- **对策**：
+  打开 Hermes 的全局配置文件 `~/.hermes/config.yaml`（或 `C:\Users\您的用户名\.hermes\config.yaml`）：
+    1. 找到顶部 `model:` 下的 `context_length` 这一行，将其强制修改为 `64000`（或 `65536`）。
+    2. **（重点）** 向下翻找，定位到 `auxiliary:` -> `compression:` 模块。因为辅助记忆压缩也会默认使用主模型，系统会再次检测出 32K/40K 的限制，所以我们需要在该模块内也手动添加一行 `context_length: 64000` （或您设置的同样长度）来强制覆盖。
+       修改保存后，再次执行 `hermes` 即可顺利越过拦截，进入对话界面！
+
+---
+
+## 五、 环境遗迹清理 (WSL2 发行版还原)
+
+若此前尝试过 WSL 部署，请执行以下命令确保系统无冲突且保持“环境洁癖”：
+
+1.  **物理删除环境**：`rm -rf ~/hermes_env ~/.hermes`。
+2.  **清理第三方源 (PPA)**：
+    ```bash
+    # 彻底移除 deadsnakes PPA
+    sudo add-apt-repository --remove ppa:deadsnakes/ppa
+    # 若命令卡死，执行以下底层物理删除
+    sudo rm -f /etc/apt/sources.list.d/deadsnakes*
+    # 刷新软件列表
+    sudo apt update
+    ```
+3.  **启动项清理**：从 `~/.bashrc` 中手动删除 `source ~/hermes_env/bin/activate` 相关行。
