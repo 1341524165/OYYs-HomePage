@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 id: hermes-agent-hybrid-deployment
-title: Hermes Agent 零起点部署与全栈排查全手册 (原生与混合架构)
+title: Hermes Agent
 tags:
     - Work
     - Hermes Agent
@@ -10,7 +10,7 @@ tags:
     - Troubleshooting
 ---
 
-# Hermes Agent 零起点部署与实战排查全手册
+# Hermes Agent 零起点部署与全栈排查全手册 (原生与混合架构)
 
 :::tip 阅读路线
 
@@ -32,10 +32,10 @@ tags:
 
 从官网下载并安装 Windows 原生版 Ollama。安装完成后，打开系统托盘里的 Ollama Settings 面板，重点检查两项：
 
-| 配置项                       | 建议                                       |
-| :--------------------------- | :----------------------------------------- |
-| **Model location**           | 修改为非系统盘路径，例如 `D:\OllamaModels` |
-| **Expose Ollama to the network** | 勾选，方便 WSL2 和其他本地进程访问     |
+| 配置项                           | 建议                                       |
+| :------------------------------- | :----------------------------------------- |
+| **Model location**               | 修改为非系统盘路径，例如 `D:\OllamaModels` |
+| **Expose Ollama to the network** | 勾选，方便 WSL2 和其他本地进程访问         |
 
 :::note
 
@@ -63,10 +63,10 @@ ollama pull qwen2.5-coder:14b
 
 因此这里保留两条路线：
 
-| 方案                     | 适用场景                                            | 推荐程度 |
-| :----------------------- | :-------------------------------------------------- | :------- |
+| 方案                      | 适用场景                                            | 推荐程度 |
+| :------------------------ | :-------------------------------------------------- | :------- |
 | **方案 A：WSL2 混合架构** | Windows 提供 Ollama 算力，WSL2 运行 Hermes 控制逻辑 | **推荐** |
-| 方案 B：Windows 原生部署 | 无法启用 WSL2，或只想验证最小本地流程               | 备选     |
+| 方案 B：Windows 原生部署  | 无法启用 WSL2，或只想验证最小本地流程               | 备选     |
 
 方案 A 的结构是：
 
@@ -135,12 +135,12 @@ hermes setup
 
 推荐填写：
 
-| 配置项     | 输入值                              | 说明                       |
-| :--------- | :---------------------------------- | :------------------------- |
-| Provider   | `Custom endpoint`                   | 手动指定推理接口           |
+| 配置项       | 输入值                              | 说明                       |
+| :----------- | :---------------------------------- | :------------------------- |
+| Provider     | `Custom endpoint`                   | 手动指定推理接口           |
 | **Base URL** | `http://<Your_Windows_IP>:11434/v1` | 指向 Windows 宿主机 Ollama |
-| API Key    | `ollama`                            | 本地接口占位鉴权           |
-| Model Name | `qwen3:8b`                          | 匹配宿主机模型             |
+| API Key      | `ollama`                            | 本地接口占位鉴权           |
+| Model Name   | `qwen3:8b`                          | 匹配宿主机模型             |
 
 :::note
 
@@ -319,11 +319,11 @@ sudo sh -c 'echo "nameserver 8.8.8.8" > /etc/resolv.conf'
 
 ### 3. Hermes 模型与配置问题
 
-| 现象                                   | 对策                                                                 |
-| :------------------------------------- | :------------------------------------------------------------------- |
+| 现象                                   | 对策                                                                     |
+| :------------------------------------- | :----------------------------------------------------------------------- |
 | Context window below minimum           | 在 `model` 与 `auxiliary.compression` 下写入 **`context_length: 64000`** |
-| HTTP 400: model does not support tools | 换成支持 tool calling 的模型，例如 Qwen3 系列                        |
-| Ollama 模型仍写入 C 盘                 | 在 Ollama GUI Settings 中统一修改模型路径                            |
+| HTTP 400: model does not support tools | 换成支持 tool calling 的模型，例如 Qwen3 系列                            |
+| Ollama 模型仍写入 C 盘                 | 在 Ollama GUI Settings 中统一修改模型路径                                |
 
 :::note
 

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 id: hermes-codex-oauth-migration
-title: Hermes 从本地 Ollama/Qwen 迁移到 OpenAI Codex OAuth
+title: Hermes: Ollama/Qwen TO OpenAI Codex
 tags:
     - Work
     - Hermes Agent
@@ -30,9 +30,9 @@ provider=openai-codex, model=gpt-5.5
 
 本文命令里的占位字段需要替换成自己的环境值：
 
-| 字段 | 含义 |
-| :--- | :--- |
-| `<WSL_USER>` | WSL/Linux 用户名 |
+| 字段                | 含义                                |
+| :------------------ | :---------------------------------- |
+| `<WSL_USER>`        | WSL/Linux 用户名                    |
 | `<WINDOWS_HOST_IP>` | Windows 宿主机在 WSL2 中可访问的 IP |
 
 ---
