@@ -155,6 +155,12 @@ code {
 	background: var(--doc-inline-code-background);
 	color: var(--doc-inline-code-color);
 	padding: 0.08rem 0.28rem;
+	vertical-align: middle;
+	line-height: normal;
+}
+
+code, pre, .theme-code-block {
+	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace !important;
 }
 
 pre code {
@@ -330,6 +336,7 @@ pre code {
 
 /* 字体 */
 @import url(https://fonts.googleapis.com/css?family=Montserrat);
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 .container_indextitle {
 	display: flex;
@@ -420,6 +427,15 @@ a:hover {
 .navbar {
 	background-color: var(--ifm-navbar-background-color);
 	backdrop-filter: blur(70px);
+	-webkit-backdrop-filter: blur(70px);
+}
+
+.theme-doc-toc-desktop {
+	background-color: var(--ifm-navbar-background-color);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border-radius: 8px;
+	padding: 10px;
 }
 
 .hero {
