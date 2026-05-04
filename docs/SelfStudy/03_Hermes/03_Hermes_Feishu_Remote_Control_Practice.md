@@ -17,7 +17,7 @@ tags:
 
 把运行在 WSL2 里的 Hermes Agent 接入飞书机器人，最终实现 `飞书私聊 -> Hermes Gateway -> Hermes Agent -> OpenAI Codex / gpt-5.5 -> 飞书回复`。
 
-本篇按照“能复现”的教程方式整理。主线只保留必要操作；本次实操遇到的网络、权限、飞书事件投递等问题，放在后面的排错章节。
+本篇按照“能复现”的教程方式整理。主线只保留必要操作；本次实操遇到的网络、权限、飞书事件投递等问题，放在[后面的排错章节](#排错websocket-已连接但没有消息入站)。
 
 :::
 
@@ -49,7 +49,7 @@ tags:
 
 ## 二、开始前确认
 
-先确认你已经完成前两篇教程：
+先确认你已经完成前两篇教程（[本地部署](./01_Hermes_Local_Deployment.md) 和 [Codex 鉴权迁移](./02_Hermes_Codex_OAuth_Migration.md)）：
 
 | 前置条件                      | 为什么需要                         |
 | :---------------------------- | :--------------------------------- |
@@ -234,7 +234,7 @@ FEISHU_CONNECTION_MODE=websocket
 
 :::
 
-如果向导后续安全选项显示不完整，不要盲选。可以先中断向导，然后按下一节手动补写安全配置。
+如果向导后续安全选项显示不完整，不要盲选。可以先中断向导，然后按[下一节](#七补写安全配置)手动补写安全配置。
 
 ---
 
@@ -345,7 +345,7 @@ Gateway running with 2 platform(s)
 
 :::note
 
-`WebSocket connected` 只代表 Hermes 和飞书开放平台之间的长连接建立成功。它不等于“飞书客户端已经能给机器人发消息”。如果后面私聊无响应，去看“排错：WebSocket 已连接但没有消息入站”。
+`WebSocket connected` 只代表 Hermes 和飞书开放平台之间的长连接建立成功。它不等于“飞书客户端已经能给机器人发消息”。如果后面私聊无响应，请看 [排错：WebSocket 已连接但没有消息入站](#排错websocket-已连接但没有消息入站)。
 
 :::
 
@@ -591,8 +591,6 @@ chmod 600 ~/.hermes/.env
 cd ~/HermesWorkspace
 nohup ~/HermesWorkspace/hermes_env/bin/hermes gateway run --accept-hooks > ~/HermesWorkspace/gateway_auto.log 2>&1 &
 ```
-
----
 
 ---
 
