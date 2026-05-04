@@ -490,7 +490,7 @@ Gateway running with 2 platform(s)
 
 这种情况说明本地 Gateway 已连上飞书，但飞书没有把消息事件投递进来。
 
-优先检查[飞书开放平台](open.feishu.cn)：
+优先检查[飞书开放平台](https://open.feishu.cn)：
 
 | 检查点       | 正常状态                         |
 | :----------- | :------------------------------- |
