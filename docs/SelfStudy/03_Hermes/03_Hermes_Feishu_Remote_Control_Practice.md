@@ -15,11 +15,7 @@ tags:
 
 :::tip 本篇目标
 
-把运行在 WSL2 里的 Hermes Agent 接入飞书机器人，最终实现：
-
-```text
-飞书私聊 -> Hermes Gateway -> Hermes Agent -> OpenAI Codex / gpt-5.5 -> 飞书回复
-```
+把运行在 WSL2 里的 Hermes Agent 接入飞书机器人，最终实现 `飞书私聊 -> Hermes Gateway -> Hermes Agent -> OpenAI Codex / gpt-5.5 -> 飞书回复`。
 
 本篇按照“能复现”的教程方式整理。主线只保留必要操作；本次实操遇到的网络、权限、飞书事件投递等问题，放在后面的排错章节。
 
@@ -44,10 +40,10 @@ tags:
 
 最终消息测试：
 
-```text
-用户在飞书私聊发送：你好，请只回复：Hermes 飞书通道已接通。
-机器人回复：Hermes 飞书通道已接通。
-```
+| 场景               | 内容                                      |
+| :----------------- | :---------------------------------------- |
+| 用户在飞书私聊发送 | `你好，请只回复：Hermes 飞书通道已接通。` |
+| 机器人回复         | `Hermes 飞书通道已接通。`                 |
 
 ---
 
@@ -68,11 +64,7 @@ tags:
 ~/HermesWorkspace/hermes_env/bin/hermes --version
 ```
 
-期望看到类似：
-
-```text
-Hermes Agent v0.12.0 (2026.4.30)
-```
+期望看到类似 `Hermes Agent v0.12.0 (2026.4.30)`。
 
 检查 Codex OAuth 状态：
 
@@ -92,12 +84,7 @@ openai-codex: logged in
 ~/HermesWorkspace/hermes_env/bin/hermes config show
 ```
 
-本次实操使用的是：
-
-```text
-provider: openai-codex
-model: gpt-5.5
-```
+本次实操使用的是 `provider: openai-codex` 和 `model: gpt-5.5`。
 
 :::note
 
@@ -381,11 +368,7 @@ Gateway running with 2 platform(s)
 
 ## 十、发送第一条测试消息
 
-在飞书机器人私聊里发送：
-
-```text
-你好，请只回复：Hermes 飞书通道已接通。
-```
+在飞书机器人私聊里发送 `你好，请只回复：Hermes 飞书通道已接通。`。
 
 然后看 Gateway 日志：
 
@@ -513,11 +496,7 @@ Gateway running with 2 platform(s)
 机器人在开放平台已创建，但飞书客户端一开始还不能真正打开机器人私聊，也不能从群聊添加机器人。
 ```
 
-解决方式：
-
-```text
-不知道，没动，自己解决了 - 总之记住上述检查方法总没错
-```
+解决方式：不知道，没动，自己解决了。总之记住上述检查方法总没错。
 
 当客户端能进入 `XX's AI Assistant` 私聊后，消息事件立刻进入 Hermes。
 

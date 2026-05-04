@@ -14,11 +14,7 @@ tags:
 
 :::tip 💡 本篇目标
 
-把 Hermes 的主模型从本地 Ollama `qwen3:8b` 切换到 Hermes 自带的 `openai-codex` provider，并最终跑通：
-
-```text
-provider=openai-codex, model=gpt-5.5
-```
+把 Hermes 的主模型从本地 Ollama `qwen3:8b` 切换到 Hermes 自带的 `openai-codex` provider，并最终跑通 `provider=openai-codex, model=gpt-5.5`。
 
 关键点：**不需要先登录 Codex CLI**。Hermes 自己就有独立的 Codex OAuth 登录流程。
 
@@ -52,13 +48,7 @@ provider=openai-codex, model=gpt-5.5
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes auth status openai-codex
 ```
 
-如果显示：
-
-```text
-openai-codex: logged out
-```
-
-说明 Hermes 已经认识 `openai-codex`，只是还没有 OAuth 凭据。
+如果显示 `openai-codex: logged out`，说明 Hermes 已经认识 `openai-codex`，只是还没有 OAuth 凭据。
 
 再看当前主模型：
 
@@ -132,11 +122,7 @@ Added openai-codex OAuth credential #1: "openai-codex-oauth-1"
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes auth list openai-codex
 ```
 
-期望：
-
-```text
-openai-codex: logged in
-```
+期望：`openai-codex: logged in`
 
 ---
 
@@ -148,39 +134,14 @@ openai-codex: logged in
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes model
 ```
 
-按菜单选择：
+按菜单依次选择：
 
-```text
-OpenAI Codex
-```
+- `OpenAI Codex`
+- 如果提示 `1. Use existing credentials / 2. Reauthenticate (new OAuth login) / 3. Cancel`，选择 `1. Use existing credentials`
+- 模型选择 `gpt-5.5`
+- 如果账号里暂时没有 `gpt-5.5`，就先选 `gpt-5.4`
 
-如果提示：
-
-```text
-1. Use existing credentials
-2. Reauthenticate (new OAuth login)
-3. Cancel
-```
-
-选择：
-
-```text
-1. Use existing credentials
-```
-
-模型选择：
-
-```text
-gpt-5.5
-```
-
-如果账号里暂时没有 `gpt-5.5`，就先选 `gpt-5.4`。
-
-成功提示：
-
-```text
-Default model set to: gpt-5.5 (via OpenAI Codex)
-```
+成功提示：`Default model set to: gpt-5.5 (via OpenAI Codex)`
 
 ---
 
@@ -223,13 +184,7 @@ model:
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes config show
 ```
 
-期望看到：
-
-```text
-Model: {'default': 'gpt-5.5', 'provider': 'openai-codex', 'base_url': 'https://chatgpt.com/backend-api/codex'}
-Context Compression:
-  Model: (auto)
-```
+期望看到 `Model: {'default': 'gpt-5.5', 'provider': 'openai-codex', 'base_url': 'https://chatgpt.com/backend-api/codex'}`，并且 `Context Compression` 下的 `Model` 是 `(auto)`。
 
 :::note
 
@@ -247,11 +202,7 @@ Context Compression:
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes doctor
 ```
 
-关键结果应该包含：
-
-```text
-OpenAI Codex auth (logged in)
-```
+关键结果应该包含 `OpenAI Codex auth (logged in)`。
 
 再做一次真实调用：
 
@@ -259,11 +210,7 @@ OpenAI Codex auth (logged in)
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes -z '请只回答当前使用的 provider 和 model。格式：provider=<...>, model=<...>'
 ```
 
-成功结果：
-
-```text
-provider=openai-codex, model=gpt-5.5
-```
+成功结果：`provider=openai-codex, model=gpt-5.5`
 
 至此迁移完成。
 
@@ -283,11 +230,7 @@ cp ~/.hermes/config.yaml.bak.YYYYMMDD_HHMMSS ~/.hermes/config.yaml
 /home/<WSL_USER>/HermesWorkspace/hermes_env/bin/hermes model
 ```
 
-选择保存过的本地 provider：
-
-```text
-<WINDOWS_HOST_IP>:11434 (...) — qwen3:8b
-```
+选择保存过的本地 provider：`<WINDOWS_HOST_IP>:11434 (...) — qwen3:8b`
 
 ---
 

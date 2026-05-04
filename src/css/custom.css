@@ -23,6 +23,14 @@
 	--ifm-botton1-background-color: #2a2d5c;
 	--ifm-button2-text-stroke-color: rgba(0, 0, 0, 0.6);
 	--ifm-color-secondary-contrast-background: rgb(239, 239, 239);
+	--doc-heading-color: #61368d;
+	--doc-heading-border-color: rgba(16, 241, 197, 0.45);
+	--doc-inline-code-color: #4a3a57;
+	--doc-inline-code-background: #f7f5fa;
+	--doc-inline-code-border: rgba(108, 0, 148, 0.18);
+	--doc-code-block-background: #f6f8fa;
+	--doc-code-block-border: #d9e0ea;
+	--doc-code-block-shadow: 0 10px 24px rgba(31, 35, 40, 0.05);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -43,6 +51,14 @@
 	--ifm-hero-background-color: rgba(71, 71, 71, 0.264);
 	--ifm-botton1-background-color: #262c6a;
 	--ifm-button2-text-stroke-color: rgba(255, 255, 255, 0.6);
+	--doc-heading-color: #9bf9e6;
+	--doc-heading-border-color: rgba(208, 83, 254, 0.38);
+	--doc-inline-code-color: #d7fff7;
+	--doc-inline-code-background: rgba(120, 247, 222, 0.09);
+	--doc-inline-code-border: rgba(120, 247, 222, 0.2);
+	--doc-code-block-background: #171b23;
+	--doc-code-block-border: #313946;
+	--doc-code-block-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
 strong {
@@ -79,9 +95,9 @@ strong {
 }
 
 .markdown > h2 {
-	color: var(--ifm-color-primary-light);
+	color: var(--doc-heading-color);
 	font-size: 2.1em;
-	border-bottom: 1px solid var(--ifm-color-reverse);
+	border-bottom: 1px solid var(--doc-heading-border-color);
 	padding-left: 1rem;
 }
 
@@ -115,16 +131,38 @@ p {
 	font-size: 1.1em;
 }
 
-pre code {
-	border: 3px solid var(--ifm-color-primary-light);
+.theme-code-block {
+	border: 1px solid var(--doc-code-block-border);
+	border-radius: 8px;
+	box-shadow: var(--doc-code-block-shadow);
+	overflow: hidden;
 }
 
-.codeBlockTitle_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module {
-	border: 3px solid var(--ifm-color-reverse);
+.theme-code-block pre {
+	margin: 0;
+	background: var(--doc-code-block-background) !important;
+}
+
+[class*='codeBlockTitle'] {
+	border: 0;
+	border-bottom: 1px solid var(--doc-code-block-border);
+	background: var(--doc-code-block-background);
 }
 
 code {
-	border: 0.1rem solid var(--ifm-color-primary-light);
+	border: 1px solid var(--doc-inline-code-border);
+	border-radius: 4px;
+	background: var(--doc-inline-code-background);
+	color: var(--doc-inline-code-color);
+	padding: 0.08rem 0.28rem;
+}
+
+pre code {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	padding: 0;
 }
 
 .button1 {

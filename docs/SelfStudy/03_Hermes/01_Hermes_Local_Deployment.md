@@ -47,11 +47,8 @@ tags:
 
 在 PowerShell 执行：
 
-```powershell
-ollama pull qwen3:8b
-# 或 14B 版本：
-ollama pull qwen2.5-coder:14b
-```
+- `ollama pull qwen3:8b`
+- 或 14B 版本：`ollama pull qwen2.5-coder:14b`
 
 `qwen3:8b` 是本次教程使用的基础模型，重点是能跑通 Hermes 的本地 tool calling 流程。
 
@@ -68,11 +65,7 @@ ollama pull qwen2.5-coder:14b
 | **方案 A：WSL2 混合架构** | Windows 提供 Ollama 算力，WSL2 运行 Hermes 控制逻辑 | **推荐** |
 | 方案 B：Windows 原生部署  | 无法启用 WSL2，或只想验证最小本地流程               | 备选     |
 
-方案 A 的结构是：
-
-```text
-Windows Ollama -> WSL2 Hermes -> Docker / Open-WebUI
-```
+方案 A 的结构是 `Windows Ollama -> WSL2 Hermes -> Docker / Open-WebUI`。
 
 算力留在宿主机，控制逻辑放在 Linux 环境，能避开大部分 **Windows 命令兼容问题**。
 
