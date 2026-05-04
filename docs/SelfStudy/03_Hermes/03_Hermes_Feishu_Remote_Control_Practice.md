@@ -1,7 +1,7 @@
 ---
 sidebar_position: 3
 id: hermes-feishu-remote-control-practice
-title: Hermes: Feishu Remote
+title: Hermes - Feishu Remote
 tags:
     - Work
     - Hermes Agent

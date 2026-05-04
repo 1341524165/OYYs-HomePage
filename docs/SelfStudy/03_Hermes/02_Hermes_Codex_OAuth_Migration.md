@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 id: hermes-codex-oauth-migration
-title: Hermes: Ollama/Qwen TO OpenAI Codex
+title: Hermes - Ollama/Qwen TO OpenAI Codex
 tags:
     - Work
     - Hermes Agent
